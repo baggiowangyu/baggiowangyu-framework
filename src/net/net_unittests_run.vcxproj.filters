@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\chrome">
+      <UniqueIdentifier>{22A2D624-B35D-B417-0931-5D8692D99D43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\chrome\test">
+      <UniqueIdentifier>{5763B17F-46DA-9ED7-179F-9C9F273B791C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\chrome\test\data">
+      <UniqueIdentifier>{BB2F2B9D-F30E-26CC-2AEB-5F1CF39B6163}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\chrome\test\data\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\testing">
+      <UniqueIdentifier>{681E52FB-4BB5-C8E2-1D1A-B7C4F2495A5E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\testing\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\tools">
+      <UniqueIdentifier>{A0946190-5491-4D66-7E51-19400E36F078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\tools\swarm_client">
+      <UniqueIdentifier>{AB9A577A-97E3-12CE-FCAA-DF89AA599E53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\tools\swarm_client\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\build">
+      <UniqueIdentifier>{D5519164-BF26-36DA-740B-76CEFC1827F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="$(OutDir)">
+      <UniqueIdentifier>{ECA95933-7FA6-5798-4EC4-C0CAC6DD34DE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="$(OutDir)\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="net.gyp"/>
+    <None Include="net_unittests.isolate">
+      <Filter>_excluded_files</Filter>
+    </None>
+    <None Include="..\chrome\test\data\animate1.gif">
+      <Filter>..\chrome\test\data\_excluded_files</Filter>
+    </None>
+    <None Include="..\chrome\test\data\server-unavailable.html">
+      <Filter>..\chrome\test\data\_excluded_files</Filter>
+    </None>
+    <None Include="..\chrome\test\data\server-unavailable.html.mock-http-headers">
+      <Filter>..\chrome\test\data\_excluded_files</Filter>
+    </None>
+    <None Include="..\chrome\test\data\simple.html">
+      <Filter>..\chrome\test\data\_excluded_files</Filter>
+    </None>
+    <None Include="..\testing\test_env.py">
+      <Filter>..\testing\_excluded_files</Filter>
+    </None>
+    <None Include="..\tools\swarm_client\run_isolated.py">
+      <Filter>..\tools\swarm_client\_excluded_files</Filter>
+    </None>
+    <None Include="..\tools\swarm_client\run_test_cases.py">
+      <Filter>..\tools\swarm_client\_excluded_files</Filter>
+    </None>
+    <ClCompile Include="..\build\precompile.cc">
+      <Filter>..\build</Filter>
+    </ClCompile>
+    <None Include="$(OutDir)\net_unittests.exe">
+      <Filter>$(OutDir)\_excluded_files</Filter>
+    </None>
+    <None Include="$(OutDir)\icudt.dll">
+      <Filter>$(OutDir)\_excluded_files</Filter>
+    </None>
+  </ItemGroup>
+</Project>
