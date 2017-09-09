@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(generate_idlBeforeTargets)' == '' and '$(generate_idlAfterTargets)' == '' and '$(ConfigurationType)' != 'Makefile'">
+    <generate_idlBeforeTargets>Midl</generate_idlBeforeTargets>
+    <generate_idlAfterTargets>CustomBuild</generate_idlAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup>
+    <generate_idlDependsOn Condition="'$(ConfigurationType)' != 'Makefile'">_SelectedFiles;$(generate_idlDependsOn)</generate_idlDependsOn>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <generate_idl>
+      <CommandLineTemplate>call python &quot;..\chrome\tools\build\version.py&quot; &quot;-e&quot; &quot;DAEMON_CONTROLLER_CLSID=&apos;af6794c3-0b35-45f6-bd83-488c0a647ae0&apos;&quot; &quot;-e&quot; &quot;RDP_DESKTOP_SESSION_CLSID=&apos;5692bfa3-3fcd-41d3-bb3c-e7f0a7b088c3&apos;&quot; &quot;%(FullPath)&quot; &quot;$(OutDir)obj\global_intermediate\remoting\host\chromoting_lib.idl&quot;</CommandLineTemplate>
+      <Outputs>$(OutDir)obj\global_intermediate\remoting\host\chromoting_lib.idl</Outputs>
+      <ExecutionDescription>Generating &quot;$(OutDir)obj/global_intermediate/remoting/host/chromoting_lib.idl&quot;</ExecutionDescription>
+      <AdditionalDependencies></AdditionalDependencies>
+    </generate_idl>
+  </ItemDefinitionGroup>
+</Project>

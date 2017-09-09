@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="host">
+      <UniqueIdentifier>{D877ED5D-5BA8-20DA-F98B-FABAACD9EF89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="host\win">
+      <UniqueIdentifier>{47FC5EC4-15EB-E92F-89D7-AFE51CF838A9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="host\plugin">
+      <UniqueIdentifier>{E12D2CF9-1CA3-AAB9-7CAB-5DCA48C96E1C}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="remoting.gyp"/>
+    <version Include="host\win\remoting_core.ver">
+      <Filter>host\win</Filter>
+    </version>
+    <version Include="host\win\remoting_desktop.ver">
+      <Filter>host\win</Filter>
+    </version>
+    <version Include="host\win\remoting_host.ver">
+      <Filter>host\win</Filter>
+    </version>
+    <version Include="host\plugin\remoting_host_plugin.ver">
+      <Filter>host\plugin</Filter>
+    </version>
+  </ItemGroup>
+</Project>

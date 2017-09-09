@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="bluetooth">
+      <UniqueIdentifier>{E501ED6C-07F7-22DB-B040-750B9B74D93F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="bluetooth\test">
+      <UniqueIdentifier>{5763B17F-46DA-9ED7-179F-9C9F273B791C}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="device.gyp"/>
+    <ClCompile Include="bluetooth\test\mock_bluetooth_socket.cc">
+      <Filter>bluetooth\test</Filter>
+    </ClCompile>
+    <ClCompile Include="bluetooth\test\mock_bluetooth_adapter.cc">
+      <Filter>bluetooth\test</Filter>
+    </ClCompile>
+    <ClInclude Include="bluetooth\test\mock_bluetooth_device.h">
+      <Filter>bluetooth\test</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\test\mock_bluetooth_socket.h">
+      <Filter>bluetooth\test</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\test\mock_bluetooth_adapter.h">
+      <Filter>bluetooth\test</Filter>
+    </ClInclude>
+    <ClCompile Include="bluetooth\test\mock_bluetooth_device.cc">
+      <Filter>bluetooth\test</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
