@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="bluetooth">
+      <UniqueIdentifier>{E501ED6C-07F7-22DB-B040-750B9B74D93F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="bluetooth\_excluded_files">
+      <UniqueIdentifier>{158E591E-B6EA-0C85-8F5A-18EAFA09B4CE}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="device.gyp"/>
+    <ClInclude Include="bluetooth\bluetooth_adapter_factory.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\bluetooth_adapter.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClCompile Include="bluetooth\bluetooth_service_record_win.cc">
+      <Filter>bluetooth</Filter>
+    </ClCompile>
+    <ClCompile Include="bluetooth\bluetooth_init_win.cc">
+      <Filter>bluetooth</Filter>
+    </ClCompile>
+    <ClCompile Include="bluetooth\bluetooth_adapter.cc">
+      <Filter>bluetooth</Filter>
+    </ClCompile>
+    <ClInclude Include="bluetooth\bluetooth_device.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClCompile Include="bluetooth\bluetooth_profile.cc">
+      <Filter>bluetooth</Filter>
+    </ClCompile>
+    <ClInclude Include="bluetooth\bluetooth_socket.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\bluetooth_socket_win.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\bluetooth_init_win.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\bluetooth_task_manager_win.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\bluetooth_device_win.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClCompile Include="bluetooth\bluetooth_adapter_factory.cc">
+      <Filter>bluetooth</Filter>
+    </ClCompile>
+    <ClCompile Include="bluetooth\bluetooth_task_manager_win.cc">
+      <Filter>bluetooth</Filter>
+    </ClCompile>
+    <ClInclude Include="bluetooth\bluetooth_profile.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\bluetooth_adapter_win.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClCompile Include="bluetooth\bluetooth_socket_win.cc">
+      <Filter>bluetooth</Filter>
+    </ClCompile>
+    <ClCompile Include="bluetooth\bluetooth_device_win.cc">
+      <Filter>bluetooth</Filter>
+    </ClCompile>
+    <ClInclude Include="bluetooth\bluetooth_utils.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\bluetooth_service_record_win.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\bluetooth_out_of_band_pairing_data.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClCompile Include="bluetooth\bluetooth_device.cc">
+      <Filter>bluetooth</Filter>
+    </ClCompile>
+    <ClCompile Include="bluetooth\bluetooth_utils.cc">
+      <Filter>bluetooth</Filter>
+    </ClCompile>
+    <ClCompile Include="bluetooth\bluetooth_adapter_win.cc">
+      <Filter>bluetooth</Filter>
+    </ClCompile>
+    <ClCompile Include="bluetooth\bluetooth_service_record.cc">
+      <Filter>bluetooth</Filter>
+    </ClCompile>
+    <ClInclude Include="bluetooth\bluetooth_service_record.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\bluetooth_profile_mac.h">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\bluetooth_adapter_experimental_chromeos.h">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\bluetooth_socket_chromeos.h">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </ClInclude>
+    <ClCompile Include="bluetooth\bluetooth_adapter_chromeos.cc">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </ClCompile>
+    <ClCompile Include="bluetooth\bluetooth_adapter_experimental_chromeos.cc">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </ClCompile>
+    <None Include="bluetooth\bluetooth_device_mac.mm">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </None>
+    <ClInclude Include="bluetooth\bluetooth_device_chromeos.h">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </ClInclude>
+    <None Include="bluetooth\bluetooth_adapter_mac.mm">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </None>
+    <ClCompile Include="bluetooth\bluetooth_device_experimental_chromeos.cc">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </ClCompile>
+    <ClCompile Include="bluetooth\bluetooth_device_chromeos.cc">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </ClCompile>
+    <ClCompile Include="bluetooth\bluetooth_socket_chromeos.cc">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </ClCompile>
+    <ClInclude Include="bluetooth\bluetooth_socket_mac.h">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\bluetooth_device_mac.h">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\bluetooth_adapter_chromeos.h">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\bluetooth_service_record_chromeos.h">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </ClInclude>
+    <None Include="bluetooth\bluetooth_profile_mac.mm">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </None>
+    <ClInclude Include="bluetooth\bluetooth_device_experimental_chromeos.h">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </ClInclude>
+    <ClCompile Include="bluetooth\bluetooth_service_record_chromeos.cc">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </ClCompile>
+    <None Include="bluetooth\bluetooth_socket_mac.mm">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </None>
+    <ClInclude Include="bluetooth\bluetooth_service_record_mac.h">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\bluetooth_adapter_mac.h">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </ClInclude>
+    <None Include="bluetooth\bluetooth_service_record_mac.mm">
+      <Filter>bluetooth\_excluded_files</Filter>
+    </None>
+  </ItemGroup>
+</Project>
