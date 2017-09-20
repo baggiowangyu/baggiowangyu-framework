@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="视频帧转图片">
+      <UniqueIdentifier>{1878ed09-c172-4ab4-b10e-a635b80e33bd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -24,6 +27,9 @@
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="FrameToImage.h">
+      <Filter>视频帧转图片</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -31,6 +37,9 @@
     </ClCompile>
     <ClCompile Include="MediaDemo.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FrameToImage.cpp">
+      <Filter>视频帧转图片</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

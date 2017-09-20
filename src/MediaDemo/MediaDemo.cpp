@@ -17,6 +17,9 @@ extern "C" {
 #endif
 #include "libavformat/avformat.h"
 #include "libavcodec/avcodec.h"
+#include "libswscale/swscale.h"
+#include "libswresample/swresample.h"
+#include "libavutil/avutil.h"
 #ifdef __cplusplus
 };
 #endif
@@ -1404,6 +1407,7 @@ void GetMediaInfo(std::string media_path_)
 			break;
 		}
 
+		// 媒体时长
 		int seconds = stream->duration * av_q2d(stream->time_base);
 
 		std::cout<<"\n媒体流 - "<<index<<" 信息："<<std::endl;
@@ -1416,7 +1420,8 @@ void GetMediaInfo(std::string media_path_)
 		} else if (avcodec_context->codec_type == AVMEDIA_TYPE_AUDIO)
 		{
 			std::cout<<"\n\t媒体类型："<<media_type.c_str()<<"\n\tCodec 名称："<<GetCodecNameFromCodecId(avcodec_context->codec_id).c_str()<<"\n\t比特率："<<avcodec_context->bit_rate<<
-				avcodec_context->coded_height<<"\n\t音频采样率："<<avcodec_context->sample_rate<<"\n\t音轨数量："<<avcodec_context->channels<<"\n\t每个音轨的帧数量："<<avcodec_context->frame_size<<"\n";
+				avcodec_context->coded_height<<"\n\t音频采样率："<<avcodec_context->sample_rate<<"\n\t音轨数量："<<avcodec_context->channels<<"\n\t每个音轨的帧数量："<<avcodec_context->frame_size<<
+				"\n\t音频时长："<<seconds<<"秒"<<"\n";
 		}
 	}
 
@@ -1606,6 +1611,107 @@ void ConvertMediaCodec(std::string media_path_, std::string codec_name)
 	}
 }
 
+// 将视频第一个关键帧保存下来，存成PNG或者JPG文件
+void GetVideoThumbnail(std::string media_path_)
+{
+	// 处理输入媒体文件
+	AVFormatContext *input_context = nullptr;
+	int errCode = avformat_open_input(&input_context, media_path_.c_str(), nullptr, nullptr);
+	if (0 != errCode)
+	{
+		std::cout<<"打开媒体文件 "<<media_path_.c_str()<<" 失败！错误码："<<errCode<<std::endl;
+		LOG(ERROR)<<"打开媒体文件 "<<media_path_.c_str()<<" 失败！错误码："<<errCode;
+
+		return;
+	}
+
+	errCode = avformat_find_stream_info(input_context, NULL);
+	if (errCode < 0)
+	{
+		std::cout<<"查询媒体文件 "<<media_path_.c_str()<<" 媒体信息失败！错误码："<<errCode<<std::endl;
+		LOG(ERROR)<<"查询媒体文件 "<<media_path_.c_str()<<" 媒体信息失败！错误码："<<errCode;
+
+		avformat_close_input(&input_context);
+		return ;
+	}
+
+	std::cout<<"======= 媒体信息 ======="<<std::endl;
+	int video_stream_index = 0;
+	int number_of_streams = input_context->nb_streams;
+	for (int index = 0; index < number_of_streams; ++index)
+	{
+		AVStream *input_stream = input_context->streams[index];
+		if (input_stream->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+		{
+			// 找到了视频流，标记视频流索引号
+			video_stream_index = index;
+
+			// 找出解码器
+			AVCodec *av_codec = avcodec_find_decoder(input_stream->codec->codec_id);
+			if (!av_codec)
+			{
+				// 没有找到解码器
+				std::cout<<"没有找到视频解码器！"<<std::endl;
+				LOG(ERROR)<<"没有找到视频解码器！";
+
+				avformat_close_input(&input_context);
+				return ;
+			}
+
+			// 尝试打开解码器
+			errCode = avcodec_open2(input_stream->codec, av_codec, NULL);
+			if (errCode < 0)
+			{
+				// 打开解码器失败
+				std::cout<<"打开解码器失败！"<<std::endl;
+				LOG(ERROR)<<"打开解码器失败！";
+
+				avformat_close_input(&input_context);
+				return ;
+			}
+
+			break;
+		}
+	}
+
+	// 找到第一个关键帧进行解码
+	AVStream *input_stream = input_context->streams[video_stream_index];
+	AVFrame *pFrame = av_frame_alloc();
+	AVPacket av_packet;
+	while (av_read_frame(input_context, &av_packet) >= 0)
+	{
+		if (av_packet.stream_index == video_stream_index)
+		{
+			AVCodecContext *avcodec_context = input_stream->codec;
+			int got_frame = 0;
+			avcodec_decode_video2(avcodec_context, pFrame, &got_frame, &av_packet);
+
+			if (got_frame)
+			{
+				if (pFrame->key_frame)
+				{
+					// 这是关键帧，做下一步操作，准备搞图片了
+					int number_bytes = avpicture_get_size(AV_PIX_FMT_BGR24, avcodec_context->width, avcodec_context->height);
+					uint8_t *buffer = new(std::nothrow) uint8_t[number_bytes];
+
+					AVFrame* av_frame_RGB = av_frame_alloc();
+					avpicture_fill((AVPicture *)av_frame_RGB, buffer, AV_PIX_FMT_BGR24, avcodec_context->width, avcodec_context->height);
+
+					SwsContext *sws_context = sws_getContext(avcodec_context->width, avcodec_context->height, avcodec_context->pix_fmt, avcodec_context->width, avcodec_context->height, AV_PIX_FMT_BGR24, SWS_BICUBIC, nullptr, nullptr, nullptr);
+
+					sws_scale(sws_context, pFrame->data, pFrame->linesize, 0, avcodec_context->height, av_frame_RGB->data, av_frame_RGB->linesize);
+
+					// 最后将首帧存到磁盘
+					std::string thumbnail_path = media_path_.append(".bmp");
+					
+					BITMAPFILEHEADER bmp_header;
+					BITMAPINFO bmp_info;
+				}
+			}
+		}
+	}
+}
+
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -1708,6 +1814,13 @@ int _tmain(int argc, _TCHAR* argv[])
 		} else if (_stricmp(input_data, "6") == 0){
 		} else if (_stricmp(input_data, "7") == 0){
 		} else if (_stricmp(input_data, "8") == 0){
+			std::cout<<"请输入视频文件路径：";
+			char media_path[512] = {0};
+			std::cin.clear();
+			std::cin>>media_path;
+
+			std::string path = media_path;
+			GetMediaInfo(path);
 		} else if (_stricmp(input_data, "9") == 0){
 		} else if (_stricmp(input_data, "0") == 0){
 			break;
