@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="libGLESv2">
+      <UniqueIdentifier>{A62A9415-2E9D-A6D2-631D-1F25A5CD626F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{2F5FD094-EF52-77F7-7AA8-4327A01BF747}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="build_angle.gyp"/>
+    <None Include="libGLESv2\libGLESv2.def">
+      <Filter>libGLESv2</Filter>
+    </None>
+    <ClCompile Include="libGLESv2\ProgramBinary.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="libGLESv2\HandleAllocator.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClInclude Include="libGLESv2\vertexconversion.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClCompile Include="libGLESv2\ResourceManager.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClInclude Include="libGLESv2\main.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClCompile Include="libGLESv2\VertexDataManager.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClInclude Include="libGLESv2\Texture.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClCompile Include="libGLESv2\libGLESv2.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClInclude Include="libGLESv2\Blit.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="libGLESv2\IndexDataManager.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="libGLESv2\Program.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClCompile Include="libGLESv2\Blit.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClInclude Include="libGLESv2\VertexDataManager.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="libGLESv2\Buffer.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="libGLESv2\Shader.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClCompile Include="libGLESv2\Buffer.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClInclude Include="libGLESv2\Renderbuffer.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClCompile Include="libGLESv2\Renderbuffer.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClInclude Include="libGLESv2\Framebuffer.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="libGLESv2\D3DConstantTable.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="libGLESv2\Fence.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClCompile Include="libGLESv2\D3DConstantTable.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClInclude Include="libGLESv2\HandleAllocator.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClCompile Include="libGLESv2\Program.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="libGLESv2\IndexDataManager.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClInclude Include="libGLESv2\utilities.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClCompile Include="libGLESv2\TextureSSE2.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="libGLESv2\main.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="libGLESv2\Shader.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClInclude Include="libGLESv2\Context.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClCompile Include="libGLESv2\Framebuffer.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClInclude Include="libGLESv2\Query.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="libGLESv2\ResourceManager.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ResourceCompile Include="libGLESv2\libGLESv2.rc">
+      <Filter>libGLESv2</Filter>
+    </ResourceCompile>
+    <ClInclude Include="libGLESv2\mathutil.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClCompile Include="libGLESv2\Texture.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="libGLESv2\utilities.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClInclude Include="libGLESv2\BinaryStream.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClCompile Include="libGLESv2\Float16ToFloat32.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="libGLESv2\Context.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClInclude Include="libGLESv2\ProgramBinary.h">
+      <Filter>libGLESv2</Filter>
+    </ClInclude>
+    <ClCompile Include="libGLESv2\Fence.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="libGLESv2\Query.cpp">
+      <Filter>libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="common\RefCountObject.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClInclude Include="common\RefCountObject.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\debug.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClCompile Include="common\debug.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClInclude Include="common\version.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\angleutils.h">
+      <Filter>common</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
