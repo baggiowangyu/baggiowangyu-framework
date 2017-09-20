@@ -1416,18 +1416,23 @@ void GetMediaInfo(std::string media_path_)
 				avcodec_context->coded_height<<"\n\t音频采样率："<<avcodec_context->sample_rate<<"\n\t音轨数量："<<avcodec_context->channels<<"\n\t每个音轨的帧数量："<<avcodec_context->frame_size<<"\n";
 		}
 	}
+
+	avformat_close_input(&input_context);
 }
 
 void ConvertMediaFormat(std::string media_path_, std::string target_format_)
 {
-	// 处理输入媒体文件
 	AVFormatContext *input_context = nullptr;
+	AVFormatContext *output_context = nullptr;
+
+	// 处理输入媒体文件
+		
 	int errCode = avformat_open_input(&input_context, media_path_.c_str(), nullptr, nullptr);
 	if (0 != errCode)
 	{
 		std::cout<<"打开媒体文件 "<<media_path_.c_str()<<" 失败！错误码："<<errCode<<std::endl;
 		LOG(ERROR)<<"打开媒体文件 "<<media_path_.c_str()<<" 失败！错误码："<<errCode;
-		return ;
+		return;
 	}
 
 	errCode = avformat_find_stream_info(input_context, NULL);
@@ -1435,17 +1440,19 @@ void ConvertMediaFormat(std::string media_path_, std::string target_format_)
 	{
 		std::cout<<"查询媒体文件 "<<media_path_.c_str()<<" 媒体信息失败！错误码："<<errCode<<std::endl;
 		LOG(ERROR)<<"查询媒体文件 "<<media_path_.c_str()<<" 媒体信息失败！错误码："<<errCode;
+		avformat_close_input(&input_context);
 		return ;
 	}
 
 	// 处理输出媒体文件
 	std::string media_path_output = media_path_.append(".").append(target_format_);
-	AVFormatContext *output_context = nullptr;
+		
 	avformat_alloc_output_context2(&output_context, nullptr, nullptr, media_path_output.c_str());
 	if (!output_context)
 	{
 		std::cout<<"创建转换媒体文件 "<<media_path_output.c_str()<<" 失败！错误码："<<errCode<<std::endl;
 		LOG(ERROR)<<"创建转换媒体文件 "<<media_path_output.c_str()<<" 失败！错误码："<<errCode;
+		avformat_close_input(&input_context);
 		return ;
 	}
 
@@ -1459,20 +1466,48 @@ void ConvertMediaFormat(std::string media_path_, std::string target_format_)
 		if (!output_stream)
 		{
 			std::cout<<"创建输出流对象失败！"<<std::endl;
-			break;
+			LOG(ERROR)<<"创建输出流对象失败！";
+
+			avformat_close_input(&input_context);
+			if (output_context && !(output_context->flags & AVFMT_NOFILE))
+				avio_close(output_context->pb);
+			avformat_free_context(output_context);
+			return ;
 		}
 
 		errCode = avcodec_copy_context(output_stream->codec, input_stream->codec);
 		if (errCode < 0)
 		{
 			std::cout<<"复制编码上下文失败！"<<std::endl;
-			break;
+			LOG(ERROR)<<"复制编码上下文失败！";
+			
+			avformat_close_input(&input_context);
+			if (output_context && !(output_context->flags & AVFMT_NOFILE))
+				avio_close(output_context->pb);
+			avformat_free_context(output_context);
+			return ;
 		}
 
 		output_stream->codec->codec_tag = 0;
-		if (output_context->oformat->flags & AVFMT_GLOBALHEADER)
-		{
+		if (output_context->oformat->flags & AVFMT_GLOBALHEADER) {
 			output_stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
+		}
+	}
+
+	// 打开输出文件
+	if (!(output_context->flags & AVFMT_NOFILE))
+	{
+		errCode = avio_open(&output_context->pb, media_path_output.c_str(), AVIO_FLAG_WRITE);
+		if (errCode < 0)
+		{
+			std::cout<<"打开输出文件 "<<media_path_output<<" 失败！"<<std::endl;
+			LOG(ERROR)<<"打开输出文件 "<<media_path_output<<" 失败！";
+
+			avformat_close_input(&input_context);
+			if (output_context && !(output_context->flags & AVFMT_NOFILE))
+				avio_close(output_context->pb);
+			avformat_free_context(output_context);
+			return ;
 		}
 	}
 
@@ -1481,6 +1516,12 @@ void ConvertMediaFormat(std::string media_path_, std::string target_format_)
 	if (errCode < 0)
 	{
 		std::cout<<"输出文件，写文件头时出错！"<<std::endl;
+		LOG(ERROR)<<"输出文件，写文件头时出错！";
+		
+		avformat_close_input(&input_context);
+		if (output_context && !(output_context->flags & AVFMT_NOFILE))
+			avio_close(output_context->pb);
+		avformat_free_context(output_context);
 		return ;
 	}
 
@@ -1488,19 +1529,47 @@ void ConvertMediaFormat(std::string media_path_, std::string target_format_)
 	int frame_index = 0;
 	while (true)
 	{
-		AVPacket *av_packet = nullptr;
+		AVPacket av_packet;
 
 		// 读取一个带编码的帧
-		errCode = av_read_frame(input_context, av_packet);
+		errCode = av_read_frame(input_context, &av_packet);
 		if (errCode < 0)
 			break;
 
-		AVStream *input_stream = input_context->streams[av_packet->stream_index];
-		AVStream *output_stream = output_context->streams[av_packet->stream_index];
+		AVStream *input_stream = input_context->streams[av_packet.stream_index];
+		AVStream *output_stream = output_context->streams[av_packet.stream_index];
 
 		// 转换PTS/DTS
 		// PTS: AVPacket中的显示时间戳
+		// DTS: 解码时间戳
+		av_packet.pts = av_rescale_q_rnd(av_packet.pts, input_stream->time_base, output_stream->time_base, (AVRounding)(AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
+		av_packet.dts = av_rescale_q_rnd(av_packet.dts, input_stream->time_base, output_stream->time_base, (AVRounding)(AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
+		av_packet.duration = av_rescale_q(av_packet.duration, input_stream->time_base, output_stream->time_base);
+		av_packet.pos = -1;
+
+		// 写入
+		errCode = av_interleaved_write_frame(output_context, &av_packet);
+		if (errCode < 0)
+		{
+			std::cout<<"包封装出错！"<<std::endl;
+			LOG(ERROR)<<"包封装出错！";
+			break;
+		}
+
+		av_free_packet(&av_packet);
+		++frame_index;
 	}
+
+	// 写文件尾
+	av_write_trailer(output_context);
+	
+	// 清理资源
+	avformat_close_input(&input_context);
+	if (output_context && !(output_context->flags & AVFMT_NOFILE))
+		avio_close(output_context->pb);
+	avformat_free_context(output_context);
+	
+	return ;
 }
 
 
@@ -1575,12 +1644,16 @@ int _tmain(int argc, _TCHAR* argv[])
 			std::cin.clear();
 			std::cin>>media_path;
 
+			std::string path = media_path;
 			GetMediaInfo(path);
 
 			std::cout<<"请输入转换目标格式：";
 			char format_name[512] = {0};
 			std::cin.clear();
 			std::cin>>format_name;
+
+			std::string ext = format_name;
+			ConvertMediaFormat(path, ext);
 		} else if (_stricmp(input_data, "4") == 0){
 		} else if (_stricmp(input_data, "5") == 0){
 		} else if (_stricmp(input_data, "6") == 0){
@@ -1588,6 +1661,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		} else if (_stricmp(input_data, "8") == 0){
 		} else if (_stricmp(input_data, "9") == 0){
 		} else if (_stricmp(input_data, "0") == 0){
+			break;
 		}
 
 		std::cout<<"\n\n"<<std::endl;
