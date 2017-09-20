@@ -1404,11 +1404,14 @@ void GetMediaInfo(std::string media_path_)
 			break;
 		}
 
+		int seconds = stream->duration * av_q2d(stream->time_base);
+
 		std::cout<<"\n媒体流 - "<<index<<" 信息："<<std::endl;
 		if (avcodec_context->codec_type == AVMEDIA_TYPE_VIDEO)
 		{
 			std::cout<<"\n\t媒体类型："<<media_type.c_str()<<"\n\tCodec 名称："<<GetCodecNameFromCodecId(avcodec_context->codec_id).c_str()<<"\n\t比特率："<<avcodec_context->bit_rate<<
-				"\n\t图像尺寸（宽*高）："<<avcodec_context->width<<"*"<<avcodec_context->height<<"\n\t流尺寸（宽*高）"<<avcodec_context->coded_width<<"*"<<avcodec_context->coded_height<<"\n";
+				"\n\t图像尺寸（宽*高）："<<avcodec_context->width<<"*"<<avcodec_context->height<<"\n\t流尺寸（宽*高）"<<avcodec_context->coded_width<<"*"<<avcodec_context->coded_height<<
+				"\n\t视频时长："<<seconds<<"秒"<<"\n";
 
 		} else if (avcodec_context->codec_type == AVMEDIA_TYPE_AUDIO)
 		{
@@ -1422,11 +1425,8 @@ void GetMediaInfo(std::string media_path_)
 
 void ConvertMediaFormat(std::string media_path_, std::string target_format_)
 {
-	AVFormatContext *input_context = nullptr;
-	AVFormatContext *output_context = nullptr;
-
 	// 处理输入媒体文件
-		
+	AVFormatContext *input_context = nullptr;
 	int errCode = avformat_open_input(&input_context, media_path_.c_str(), nullptr, nullptr);
 	if (0 != errCode)
 	{
@@ -1446,7 +1446,7 @@ void ConvertMediaFormat(std::string media_path_, std::string target_format_)
 
 	// 处理输出媒体文件
 	std::string media_path_output = media_path_.append(".").append(target_format_);
-		
+	AVFormatContext *output_context = nullptr;	
 	avformat_alloc_output_context2(&output_context, nullptr, nullptr, media_path_output.c_str());
 	if (!output_context)
 	{
@@ -1572,6 +1572,40 @@ void ConvertMediaFormat(std::string media_path_, std::string target_format_)
 	return ;
 }
 
+void ConvertMediaCodec(std::string media_path_, std::string codec_name)
+{
+	// 处理输入媒体文件
+	AVFormatContext *input_context = nullptr;
+	int errCode = avformat_open_input(&input_context, media_path_.c_str(), nullptr, nullptr);
+	if (0 != errCode)
+	{
+		std::cout<<"打开媒体文件 "<<media_path_.c_str()<<" 失败！错误码："<<errCode<<std::endl;
+		LOG(ERROR)<<"打开媒体文件 "<<media_path_.c_str()<<" 失败！错误码："<<errCode;
+		return;
+	}
+
+	errCode = avformat_find_stream_info(input_context, NULL);
+	if (errCode < 0)
+	{
+		std::cout<<"查询媒体文件 "<<media_path_.c_str()<<" 媒体信息失败！错误码："<<errCode<<std::endl;
+		LOG(ERROR)<<"查询媒体文件 "<<media_path_.c_str()<<" 媒体信息失败！错误码："<<errCode;
+		avformat_close_input(&input_context);
+		return ;
+	}
+
+	// 处理输出媒体文件
+	std::string media_path_output = media_path_.append(".").append("new");
+	AVFormatContext *output_context = nullptr;	
+	avformat_alloc_output_context2(&output_context, nullptr, nullptr, media_path_output.c_str());
+	if (!output_context)
+	{
+		std::cout<<"创建转换媒体文件 "<<media_path_output.c_str()<<" 失败！错误码："<<errCode<<std::endl;
+		LOG(ERROR)<<"创建转换媒体文件 "<<media_path_output.c_str()<<" 失败！错误码："<<errCode;
+		avformat_close_input(&input_context);
+		return ;
+	}
+}
+
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -1618,8 +1652,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		std::cout<<"4. 视音频文件编码转换（不改变格式）"<<std::endl;
 		std::cout<<"5. 视音频文件格式转换(改变编码)"<<std::endl;
 		std::cout<<"6. 视音频文件编码转换（改变格式）"<<std::endl;
-		std::cout<<"7. "<<std::endl;
-		std::cout<<"8. "<<std::endl;
+		std::cout<<"7. 计算视频总时长"<<std::endl;
+		std::cout<<"8. 提取视频缩略图"<<std::endl;
 		std::cout<<"9. "<<std::endl;
 		std::cout<<"0. 退出"<<std::endl;
 		std::cout<<"请输入选项：";
@@ -1655,6 +1689,21 @@ int _tmain(int argc, _TCHAR* argv[])
 			std::string ext = format_name;
 			ConvertMediaFormat(path, ext);
 		} else if (_stricmp(input_data, "4") == 0){
+			std::cout<<"请输入视频文件路径：";
+			char media_path[512] = {0};
+			std::cin.clear();
+			std::cin>>media_path;
+
+			std::string path = media_path;
+			GetMediaInfo(path);
+
+			std::cout<<"请输入转换目标编码：";
+			char codec_name[512] = {0};
+			std::cin.clear();
+			std::cin>>codec_name;
+
+			std::string codec = codec_name;
+			ConvertMediaCodec(path, codec);
 		} else if (_stricmp(input_data, "5") == 0){
 		} else if (_stricmp(input_data, "6") == 0){
 		} else if (_stricmp(input_data, "7") == 0){
