@@ -1,4 +1,9 @@
 #include "stdafx.h"
+
+#ifdef WIN32
+#include <Windows.h>
+#endif
+
 #include "FrameToImage.h"
 #include "SDL.h"
 
@@ -6,6 +11,7 @@ int FrameToImage::FrameToBmp(AVFrame *frame_rgb, int width, int height, int bpp,
 {
 	int errCode = 0;
 
+	// 构造位图头部
 	BITMAPFILEHEADER bitmap_file_header;
 	bitmap_file_header.bfType = 0x4D42;  // 'BM'
 	bitmap_file_header.bfReserved1 = 0;
@@ -13,6 +19,7 @@ int FrameToImage::FrameToBmp(AVFrame *frame_rgb, int width, int height, int bpp,
 	bitmap_file_header.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 	bitmap_file_header.bfSize = bitmap_file_header.bfOffBits + width * height * bpp / 8;
 
+	// 构造位图信息头
 	BITMAPINFOHEADER bitmap_info_header;
 	bitmap_info_header.biSize = sizeof(BITMAPINFOHEADER);
 	bitmap_info_header.biWidth = width;

@@ -42,6 +42,9 @@
     <ClInclude Include="MediaDataInfo.h">
       <Filter>音视频分析</Filter>
     </ClInclude>
+    <ClInclude Include="MediaCodecConvert.h">
+      <Filter>音视频转码</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -55,6 +58,9 @@
     </ClCompile>
     <ClCompile Include="MediaAnalyze.cpp">
       <Filter>音视频分析</Filter>
+    </ClCompile>
+    <ClCompile Include="MediaCodecConvert.cpp">
+      <Filter>音视频转码</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
