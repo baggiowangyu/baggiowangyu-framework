@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="媒体文件对象">
+      <UniqueIdentifier>{d410cdd4-21c5-49a7-945a-31234d9072dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="媒体处理对象">
+      <UniqueIdentifier>{e69cd301-fada-4376-be1c-0afaa6ca6e19}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="wyMediaObject.h">
+      <Filter>媒体文件对象</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="wyMediaUtil.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="wyMediaObject.cpp">
+      <Filter>媒体文件对象</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

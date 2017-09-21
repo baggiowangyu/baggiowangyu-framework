@@ -1389,6 +1389,8 @@ void GetMediaInfo(std::string media_path_)
 	}
 
 	std::cout<<"======= 媒体信息 ======="<<std::endl;
+	int video_stream_index = 0;
+	int audio_stream_index = 0;
 	int number_of_streams = input_context->nb_streams;
 	for (int index = 0; index < number_of_streams; ++index)
 	{
@@ -1398,9 +1400,11 @@ void GetMediaInfo(std::string media_path_)
 		switch (avcodec_context->codec_type)
 		{
 		case AVMEDIA_TYPE_VIDEO:
+			video_stream_index = index;
 			media_type = "Video";
 			break;
 		case AVMEDIA_TYPE_AUDIO:
+			audio_stream_index = index;
 			media_type = "Audio";
 			break;
 		default:
@@ -1424,6 +1428,13 @@ void GetMediaInfo(std::string media_path_)
 				"\n\t音频时长："<<seconds<<"秒"<<"\n";
 		}
 	}
+
+	// 读取每一帧
+	//AVPacket av_packet;
+	//while (av_read_frame(input_context, &av_packet) > 0)
+	//{
+
+	//}
 
 	avformat_close_input(&input_context);
 }
