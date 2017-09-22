@@ -26,6 +26,8 @@ extern "C" {
 
 #include <iostream>
 
+#include "MediaAnalyze.h"
+
 std::string GetCodecNameFromCodecId(AVCodecID id)
 {
 	std::string codec_name;
@@ -1369,74 +1371,127 @@ void EnumInputOutputFormat()
 
 void GetMediaInfo(std::string media_path_)
 {
-	base::FilePath media_path(base::SysMultiByteToWide(media_path_, CP_ACP));
-
-	AVFormatContext *input_context = nullptr;
-	int errCode = avformat_open_input(&input_context, media_path_.c_str(), nullptr, nullptr);
-	if (0 != errCode)
+	// 分析文件
+	MediaAnalyze media_analyze;
+	int errCode = media_analyze.Open(media_path_.c_str());
+	if (errCode != 0)
 	{
-		std::cout<<"打开媒体文件 "<<media_path_.c_str()<<" 失败！错误码："<<errCode<<std::endl;
-		LOG(ERROR)<<"打开媒体文件 "<<media_path_.c_str()<<" 失败！错误码："<<errCode;
+		std::cout<<"分析媒体文件 "<<media_path_.c_str()<<" 失败！错误码："<<errCode<<std::endl;
+		LOG(ERROR)<<"分析媒体文件 "<<media_path_.c_str()<<" 失败！错误码："<<errCode;
 		return ;
 	}
 
-	errCode = avformat_find_stream_info(input_context, NULL);
-	if (errCode < 0)
+	std::cout<<"媒体概要：";
+	std::cout<<"\n\t"<<"格式名："<<media_analyze.GetFormatName();
+	std::cout<<"\n\t"<<"格式全名："<<media_analyze.GetFormatLongName();
+	std::cout<<"\n\t"<<"持续时间(秒)："<<media_analyze.GetKeepDuration();
+	std::cout<<"\n\t"<<"平均混合码率："<<media_analyze.GetMixBitRate();
+
+	// 分析完成，输出信息
+	if (media_analyze.HasVideoInfo())
 	{
-		std::cout<<"查询媒体文件 "<<media_path_.c_str()<<" 媒体信息失败！错误码："<<errCode<<std::endl;
-		LOG(ERROR)<<"查询媒体文件 "<<media_path_.c_str()<<" 媒体信息失败！错误码："<<errCode;
-		return ;
+		std::cout<<"\n  视频流数据 ：";
+		std::cout<<"\n\t"<<"编码ID："<<media_analyze.GetVideoCodecId();
+		std::cout<<"\n\t"<<"编码名称："<<media_analyze.GetVideoCodecName();
+		std::cout<<"\n\t"<<"编码全名："<<media_analyze.GetVideoCodecLongName();
+		std::cout<<"\n\t"<<"格式概况：";
+		std::cout<<"\n\t"<<"格式设置，CABAC：";
+		std::cout<<"\n\t"<<"格式设置，参考帧：";
+		std::cout<<"\n\t"<<"格式设置，GOP：";
+		std::cout<<"\n\t"<<"持续时间(秒)："<<media_analyze.GetVideoDuration();
+		std::cout<<"\n\t"<<"码率：";
+		std::cout<<"\n\t"<<"视频宽度："<<media_analyze.GetVideoWidth();
+		std::cout<<"\n\t"<<"视频高度："<<media_analyze.GetVideoHeight();
+		std::cout<<"\n\t"<<"画面比例：";
+		std::cout<<"\n\t"<<"色彩空间：";
+		std::cout<<"\n\t"<<"色彩抽样：";
+		std::cout<<"\n\t"<<"位深：";
+		std::cout<<"\n\t"<<"扫描方式：";
 	}
 
-	std::cout<<"======= 媒体信息 ======="<<std::endl;
-	int video_stream_index = 0;
-	int audio_stream_index = 0;
-	int number_of_streams = input_context->nb_streams;
-	for (int index = 0; index < number_of_streams; ++index)
+	if (media_analyze.HasAudioInfo())
 	{
-		AVStream *stream = input_context->streams[index];
-		AVCodecContext *avcodec_context = stream->codec;
-		std::string media_type;
-		switch (avcodec_context->codec_type)
-		{
-		case AVMEDIA_TYPE_VIDEO:
-			video_stream_index = index;
-			media_type = "Video";
-			break;
-		case AVMEDIA_TYPE_AUDIO:
-			audio_stream_index = index;
-			media_type = "Audio";
-			break;
-		default:
-			break;
-		}
-
-		// 媒体时长
-		int seconds = stream->duration * av_q2d(stream->time_base);
-
-		std::cout<<"\n媒体流 - "<<index<<" 信息："<<std::endl;
-		if (avcodec_context->codec_type == AVMEDIA_TYPE_VIDEO)
-		{
-			std::cout<<"\n\t媒体类型："<<media_type.c_str()<<"\n\tCodec 名称："<<GetCodecNameFromCodecId(avcodec_context->codec_id).c_str()<<"\n\t比特率："<<avcodec_context->bit_rate<<
-				"\n\t图像尺寸（宽*高）："<<avcodec_context->width<<"*"<<avcodec_context->height<<"\n\t流尺寸（宽*高）"<<avcodec_context->coded_width<<"*"<<avcodec_context->coded_height<<
-				"\n\t视频时长："<<seconds<<"秒"<<"\n";
-
-		} else if (avcodec_context->codec_type == AVMEDIA_TYPE_AUDIO)
-		{
-			std::cout<<"\n\t媒体类型："<<media_type.c_str()<<"\n\tCodec 名称："<<GetCodecNameFromCodecId(avcodec_context->codec_id).c_str()<<"\n\t比特率："<<avcodec_context->bit_rate<<
-				avcodec_context->coded_height<<"\n\t音频采样率："<<avcodec_context->sample_rate<<"\n\t音轨数量："<<avcodec_context->channels<<"\n\t每个音轨的帧数量："<<avcodec_context->frame_size<<
-				"\n\t音频时长："<<seconds<<"秒"<<"\n";
-		}
+		std::cout<<"\n  音频流数据 ：";
+		std::cout<<"\n\t"<<"编码ID："<<media_analyze.GetAudioCodecId();
+		std::cout<<"\n\t"<<"格式："<<media_analyze.GetAudioCodecName();
+		std::cout<<"\n\t"<<"格式版本：";
+		std::cout<<"\n\t"<<"格式概况：";
+		std::cout<<"\n\t"<<"模式：";
+		std::cout<<"\n\t"<<"扩展模式：";
+		std::cout<<"\n\t"<<"持续时间(秒)："<<media_analyze.GetAudioDuration();
+		std::cout<<"\n\t"<<"码率模式：";
+		std::cout<<"\n\t"<<"码率："<<media_analyze.GetAudioBitRate();
+		std::cout<<"\n\t"<<"声道："<<media_analyze.GetAudioChannelCount();
+		std::cout<<"\n\t"<<"采样率："<<media_analyze.GetAudioSanplingRate();
+		std::cout<<"\n\t"<<"压缩模式：";
+		std::cout<<"\n\t"<<"音频延迟：";
 	}
 
-	// 读取每一帧
-	//AVPacket av_packet;
-	//while (av_read_frame(input_context, &av_packet) > 0)
+	media_analyze.Close();
+
+	//base::FilePath media_path(base::SysMultiByteToWide(media_path_, CP_ACP));
+
+	//AVFormatContext *input_context = nullptr;
+	//int errCode = avformat_open_input(&input_context, media_path_.c_str(), nullptr, nullptr);
+	//if (0 != errCode)
 	//{
-
+	//	std::cout<<"打开媒体文件 "<<media_path_.c_str()<<" 失败！错误码："<<errCode<<std::endl;
+	//	LOG(ERROR)<<"打开媒体文件 "<<media_path_.c_str()<<" 失败！错误码："<<errCode;
+	//	return ;
 	//}
 
-	avformat_close_input(&input_context);
+	//errCode = avformat_find_stream_info(input_context, NULL);
+	//if (errCode < 0)
+	//{
+	//	std::cout<<"查询媒体文件 "<<media_path_.c_str()<<" 媒体信息失败！错误码："<<errCode<<std::endl;
+	//	LOG(ERROR)<<"查询媒体文件 "<<media_path_.c_str()<<" 媒体信息失败！错误码："<<errCode;
+	//	return ;
+	//}
+
+	//std::cout<<"======= 媒体信息 ======="<<std::endl;
+	//int video_stream_index = 0;
+	//int audio_stream_index = 0;
+	//int number_of_streams = input_context->nb_streams;
+	//for (int index = 0; index < number_of_streams; ++index)
+	//{
+	//	AVStream *stream = input_context->streams[index];
+	//	AVCodecContext *avcodec_context = stream->codec;
+	//	AVCodec *avcodec = avcodec_find_decoder(avcodec_context->codec_id);
+	//	avcodec_open2(avcodec_context, avcodec, nullptr);
+	//	std::string media_type;
+	//	switch (avcodec_context->codec_type)
+	//	{
+	//	case AVMEDIA_TYPE_VIDEO:
+	//		video_stream_index = index;
+	//		media_type = "Video";
+	//		break;
+	//	case AVMEDIA_TYPE_AUDIO:
+	//		audio_stream_index = index;
+	//		media_type = "Audio";
+	//		break;
+	//	default:
+	//		break;
+	//	}
+
+	//	// 媒体时长
+	//	int seconds = stream->duration * av_q2d(stream->time_base);
+
+	//	std::cout<<"\n媒体流 - "<<index<<" 信息："<<std::endl;
+	//	if (avcodec_context->codec_type == AVMEDIA_TYPE_VIDEO)
+	//	{
+	//		std::cout<<"\n\t媒体类型："<<media_type.c_str()<<"\n\tCodec 名称："<<GetCodecNameFromCodecId(avcodec_context->codec_id).c_str()<<"\n\t比特率："<<avcodec_context->bit_rate<<
+	//			"\n\t图像尺寸（宽*高）："<<avcodec_context->width<<"*"<<avcodec_context->height<<"\n\t流尺寸（宽*高）"<<avcodec_context->coded_width<<"*"<<avcodec_context->coded_height<<
+	//			"\n\t视频时长："<<seconds<<"秒"<<"\n";
+
+	//	} else if (avcodec_context->codec_type == AVMEDIA_TYPE_AUDIO)
+	//	{
+	//		std::cout<<"\n\t媒体类型："<<media_type.c_str()<<"\n\tCodec 名称："<<GetCodecNameFromCodecId(avcodec_context->codec_id).c_str()<<"\n\t比特率："<<avcodec_context->bit_rate<<
+	//			avcodec_context->coded_height<<"\n\t音频采样率："<<avcodec_context->sample_rate<<"\n\t音轨数量："<<avcodec_context->channels<<"\n\t每个音轨的帧数量："<<avcodec_context->frame_size<<
+	//			"\n\t音频时长："<<seconds<<"秒"<<"\n";
+	//	}
+	//}
+
+	//avformat_close_input(&input_context);
 }
 
 void ConvertMediaFormat(std::string media_path_, std::string target_format_)
