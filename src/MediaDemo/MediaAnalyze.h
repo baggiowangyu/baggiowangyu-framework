@@ -114,6 +114,7 @@ private:
 	const AVCodec *video_codec;			// 视频解码器
 	std::string video_codec_name;
 	std::string video_codec_long_name;
+	AVPixelFormat video_pix_format;
 
 	// 未处理的参数：
 	// 视频码率

@@ -288,11 +288,10 @@ int MediaAnalyze::AnalyzeVideoStream(AVStream *av_stream)
 			continue;
 
 		// 解码成功了，应该有一些字段已经被解码器填充了
-		AVPixelFormat video_pix_format = video_codec_context->pix_fmt;
-
 		if (av_frame->key_frame)
 		{
 			// 是关键帧
+			video_pix_format = video_codec_context->pix_fmt;
 			av_frame_free(&av_frame);
 			break;
 		}
