@@ -10,6 +10,7 @@ extern "C" {
 	};
 #endif
 
+#include "MediaUtil.h"
 #include "MediaAnalyze.h"
 
 MediaAnalyze::MediaAnalyze()
@@ -160,6 +161,11 @@ int MediaAnalyze::GetVideoHeight()
 	return video_height;
 }
 
+std::string MediaAnalyze::GetVideoPixFormatName()
+{
+	return video_pix_format_name;
+}
+
 int MediaAnalyze::GetAudioBitRate()
 {
 	return audio_bit_rate;
@@ -292,6 +298,7 @@ int MediaAnalyze::AnalyzeVideoStream(AVStream *av_stream)
 		{
 			// ÊÇ¹Ø¼üÖ¡
 			video_pix_format = video_codec_context->pix_fmt;
+			video_pix_format_name = MediaUtil::GetAVPixelFormatNameByPixelFormat(video_pix_format);
 			av_frame_free(&av_frame);
 			break;
 		}

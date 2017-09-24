@@ -51,6 +51,8 @@ public:
 	int GetVideoWidth();
 	int GetVideoHeight();
 
+	std::string GetVideoPixFormatName();
+
 	int GetAudioBitRate();
 	int GetAudioChannelCount();
 	int GetAudioSanplingRate();
@@ -115,6 +117,7 @@ private:
 	std::string video_codec_name;
 	std::string video_codec_long_name;
 	AVPixelFormat video_pix_format;
+	std::string video_pix_format_name;
 
 	// 未处理的参数：
 	// 视频码率
