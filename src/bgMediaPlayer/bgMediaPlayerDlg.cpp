@@ -7,6 +7,19 @@
 #include "bgMediaPlayerDlg.h"
 #include "afxdialogex.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "libavcodec/avcodec.h"
+#include "libswresample/swresample.h"
+#include "libswscale/swscale.h"
+#include "libavutil/avutil.h"
+#ifdef __cplusplus
+};
+#endif
+
+#include "SDL.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -50,6 +63,7 @@ END_MESSAGE_MAP()
 
 CbgMediaPlayerDlg::CbgMediaPlayerDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CbgMediaPlayerDlg::IDD, pParent)
+	, decoder(new bgMediaDecoder(this))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -57,12 +71,15 @@ CbgMediaPlayerDlg::CbgMediaPlayerDlg(CWnd* pParent /*=NULL*/)
 void CbgMediaPlayerDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_EDIT_MEDIA_URL, m_cMediaUrl);
 }
 
 BEGIN_MESSAGE_MAP(CbgMediaPlayerDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_BN_CLICKED(IDC_BUTTON_BROWSER, &CbgMediaPlayerDlg::OnBnClickedButtonBrowser)
+	ON_BN_CLICKED(IDC_BUTTON_PLAY, &CbgMediaPlayerDlg::OnBnClickedButtonPlay)
 END_MESSAGE_MAP()
 
 
@@ -98,6 +115,20 @@ BOOL CbgMediaPlayerDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
+	CWnd *pPlayerCWnd = GetDlgItem(IDC_STATIC_PLAYER_SCREEN);
+
+	char variable[4096] = {0};
+	sprintf_s(variable, 4096, "SDL_WINDOWID=0x%1x", pPlayerCWnd->GetSafeHwnd());
+
+	//SDL_putenv()
+
+	// SDL模块的初始化
+	int errCode = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
+	if (!errCode)
+	{
+		MessageBox(_T("Initialize SDL failed."), _T("Error"), MB_ICONERROR|MB_OK);
+		return TRUE;
+	}
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -151,3 +182,60 @@ HCURSOR CbgMediaPlayerDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+
+void CbgMediaPlayerDlg::VideoSizeCallback(int width, int height)
+{
+	video_width = width;
+	video_height = height;
+
+	// SDL 设置视频宽高
+	sdl_window = SDL_CreateWindow("bgMediaPlayer", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, video_width, video_height, SDL_WINDOW_OPENGL);
+	if (!sdl_window)
+	{
+		TRACE("Create SDL window failed.\n");
+	}
+
+	sdl_renderer = SDL_CreateRenderer(sdl_window, -1, 0);
+	sdl_texture = SDL_CreateTexture(sdl_renderer, SDL_PIXELFORMAT_IYUV, SDL_TEXTUREACCESS_STREAMING, video_width, video_height);
+}
+
+void CbgMediaPlayerDlg::MediaDecoderCallback(void* frame_data, int frame_data_len)
+{
+	AVFrame *av_frame = (AVFrame *)frame_data;
+
+	SYSTEMTIME st;
+	GetLocalTime(&st);
+	TRACE("frame : %d ||| date-time : %d-%02d-%02d %02d:%02d:%02d.%03d\n", frame_index, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+	++frame_index;
+
+	// 这里不限制播放帧数的话，每秒可以处理高达400+帧的视音频数据
+	// 这里我们调用SDL进行处理
+}
+
+
+void CbgMediaPlayerDlg::OnBnClickedButtonBrowser()
+{
+	CFileDialog fileDlg(TRUE, NULL, NULL, 6UL, _T(""), this);
+	INT_PTR ret = fileDlg.DoModal();
+
+	if (ret == IDOK)
+	{
+		CString media_path = fileDlg.GetPathName();
+		m_cMediaUrl.SetWindowText(media_path);
+	}
+}
+
+
+void CbgMediaPlayerDlg::OnBnClickedButtonPlay()
+{
+	CString media_url_t;
+	m_cMediaUrl.GetWindowText(media_url_t);
+
+	frame_index = 0;
+
+	base::FilePath media_path = base::FilePath::FromWStringHack(media_url_t.GetString());
+	decoder->OpenMedia(media_path);
+
+	decoder->StartDecode();
+}

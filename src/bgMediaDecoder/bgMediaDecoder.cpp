@@ -16,6 +16,7 @@ extern "C" {
 #include "libswscale/swscale.h"
 #include "libswresample/swresample.h"
 #include "libavutil/avutil.h"
+#include "libavutil/imgutils.h"
 #ifdef __cplusplus
 };
 #endif
@@ -42,7 +43,7 @@ int bgMediaDecoder::OpenMedia(base::FilePath media_url)
 	avcodec_register_all();
 	avformat_network_init();
 
-	std::string media_url_a = base::SysWideToUTF8(media_url.value());
+	media_url_a = base::SysWideToUTF8(media_url.value());
 
 	return errCode;
 }
@@ -131,6 +132,10 @@ void bgMediaDecoder::Working(bgMediaDecoder *decoder)
 	}
 
 	// 图像转换
+	AVFrame *av_frame_yuv = av_frame_alloc();
+	unsigned char *out_buffer = (unsigned char *)av_malloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P, video_codec_context->width, video_codec_context->height, 1));
+	av_image_fill_arrays(av_frame_yuv->data, av_frame_yuv->linesize, out_buffer, AV_PIX_FMT_YUV420P, video_codec_context->width, video_codec_context->height, 1);
+
 	struct SwsContext *img_convert_ctx = sws_getContext(video_codec_context->width, video_codec_context->height, video_codec_context->pix_fmt, video_codec_context->width, video_codec_context->height, AV_PIX_FMT_YUV420P, SWS_BICUBIC, nullptr, nullptr, nullptr);
 
 	// 开始读取每一帧并解码了
@@ -151,7 +156,10 @@ void bgMediaDecoder::Working(bgMediaDecoder *decoder)
 
 			if (got_picture)
 			{
-				bg_decoder->decoder_callback_->MediaDecoderCallback(video_frame, sizeof(AVFrame));
+				// 这里执行像素转换
+				sws_scale(img_convert_ctx, (const unsigned char * const *)video_frame->data, video_frame->linesize, 0, video_codec_context->height, av_frame_yuv->data, av_frame_yuv->linesize);
+
+				bg_decoder->decoder_callback_->MediaDecoderCallback(av_frame_yuv, sizeof(AVFrame));
 			}
 		}
 	}
@@ -166,8 +174,11 @@ void bgMediaDecoder::Working(bgMediaDecoder *decoder)
 
 		if (!got_picture)
 			break;
+		
+		// 这里执行像素转换
+		sws_scale(img_convert_ctx, (const unsigned char * const *)video_frame->data, video_frame->linesize, 0, video_codec_context->height, av_frame_yuv->data, av_frame_yuv->linesize);
 
-		bg_decoder->decoder_callback_->MediaDecoderCallback(video_frame, sizeof(AVFrame));
+		bg_decoder->decoder_callback_->MediaDecoderCallback(av_frame_yuv, sizeof(AVFrame));
 	}
 
 	return ;
