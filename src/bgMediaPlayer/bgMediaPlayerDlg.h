@@ -6,6 +6,7 @@
 #include "afxwin.h"
 
 #include "bgMediaDecoder/bgMediaDecoder.h"
+#include "SDL.h"
 
 
 // CbgMediaPlayerDlg ¶Ô»°¿ò
