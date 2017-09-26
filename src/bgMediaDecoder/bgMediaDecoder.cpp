@@ -108,7 +108,7 @@ void bgMediaDecoder::Working(bgMediaDecoder *decoder)
 	AVCodecContext *video_codec_context = avformat_input_context->streams[video_stream_index]->codec;
 	AVCodecContext *audio_codec_context = avformat_input_context->streams[audio_stream_index]->codec;
 
-	// 通知上层播放器组件
+	// 通知上层播放器组件，目标媒体视频宽高
 	if (bg_decoder->decoder_callback_)
 		bg_decoder->decoder_callback_->VideoSizeCallback(video_codec_context->width, video_codec_context->height);
 
@@ -131,54 +131,47 @@ void bgMediaDecoder::Working(bgMediaDecoder *decoder)
 		return ;
 	}
 
-	// 图像转换
+	// 申请帧内存
+	//AVFrame *av_frame = av_frame_alloc();
 	AVFrame *av_frame_yuv = av_frame_alloc();
-	unsigned char *out_buffer = (unsigned char *)av_malloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P, video_codec_context->width, video_codec_context->height, 1));
+
+	// 申请输出缓冲区内存
+	int buffer_size = av_image_get_buffer_size(AV_PIX_FMT_YUV420P, video_codec_context->width, video_codec_context->height, 1);
+	unsigned char *out_buffer = (unsigned char *)av_malloc(buffer_size);
+
+	// 填充图像数组
 	av_image_fill_arrays(av_frame_yuv->data, av_frame_yuv->linesize, out_buffer, AV_PIX_FMT_YUV420P, video_codec_context->width, video_codec_context->height, 1);
 
-	struct SwsContext *img_convert_ctx = sws_getContext(video_codec_context->width, video_codec_context->height, video_codec_context->pix_fmt, video_codec_context->width, video_codec_context->height, AV_PIX_FMT_YUV420P, SWS_BICUBIC, nullptr, nullptr, nullptr);
+	// 获取像素转换上下文
+	struct SwsContext *img_convert_ctx = sws_getContext(video_codec_context->width, video_codec_context->height, video_codec_context->pix_fmt, 
+		video_codec_context->width, video_codec_context->height, AV_PIX_FMT_YUV420P, SWS_BICUBIC, nullptr, nullptr, nullptr);
 
 	// 开始读取每一帧并解码了
 	AVPacket av_packet;
 	while (av_read_frame(avformat_input_context, &av_packet) >= 0)
 	{
 		// 如果编码包是视频流，则进行解码
-		if (av_packet.stream_index == video_stream_index)
-		{
-			int got_picture = 0;
-			AVFrame *video_frame = av_frame_alloc();
-			errCode = avcodec_decode_video2(video_codec_context, video_frame, &got_picture, &av_packet);
-			if (errCode < 0)
-			{
-				LOG(ERROR)<<"Decode failed. errCode : "<<errCode;
-				return ;
-			}
+		if (av_packet.stream_index != video_stream_index)
+			continue;
 
-			if (got_picture)
-			{
-				// 这里执行像素转换
-				sws_scale(img_convert_ctx, (const unsigned char * const *)video_frame->data, video_frame->linesize, 0, video_codec_context->height, av_frame_yuv->data, av_frame_yuv->linesize);
-
-				bg_decoder->decoder_callback_->MediaDecoderCallback(av_frame_yuv, sizeof(AVFrame));
-			}
-		}
-	}
-
-	while (true)
-	{
 		int got_picture = 0;
 		AVFrame *video_frame = av_frame_alloc();
 		errCode = avcodec_decode_video2(video_codec_context, video_frame, &got_picture, &av_packet);
 		if (errCode < 0)
-			break;
+		{
+			// 解码失败，为了能保证后面的视频能正常播放，我们就跳过这一个包，继续读取下一个进行解码
+			LOG(ERROR)<<"Decode failed. errCode : "<<errCode;
+			continue;
+		}
 
-		if (!got_picture)
-			break;
+		if (got_picture)
+		{
+			// 这里执行像素转换
+			sws_scale(img_convert_ctx, (const unsigned char * const *)video_frame->data, video_frame->linesize, 0, video_codec_context->height, av_frame_yuv->data, av_frame_yuv->linesize);
+			bg_decoder->decoder_callback_->MediaDecoderCallback(av_frame_yuv);
+		}
 		
-		// 这里执行像素转换
-		sws_scale(img_convert_ctx, (const unsigned char * const *)video_frame->data, video_frame->linesize, 0, video_codec_context->height, av_frame_yuv->data, av_frame_yuv->linesize);
-
-		bg_decoder->decoder_callback_->MediaDecoderCallback(av_frame_yuv, sizeof(AVFrame));
+		//av_frame_free(&video_frame);
 	}
 
 	return ;

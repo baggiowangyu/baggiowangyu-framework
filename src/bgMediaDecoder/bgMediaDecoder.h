@@ -4,11 +4,13 @@
 #include "base/file_util.h"
 #include "base/threading/thread.h"
 
+struct AVFrame;
+
 class bgMediaDecoderCallback
 {
 public:
 	virtual void VideoSizeCallback(int width, int height) = 0;
-	virtual void MediaDecoderCallback(void* frame_data, int frame_data_len) = 0;
+	virtual void MediaDecoderCallback(AVFrame* frame_data) = 0;
 };
 
 class bgMediaDecoder
