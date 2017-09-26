@@ -57,7 +57,11 @@ public:
 	~SDL2Player();
 
 public:
+	int Initialize();
 	int Initialize(std::string window_name, int window_width, int window_height);
+#ifdef WIN32
+	int Initialize(HWND player_container);
+#endif
 	void Destroy();
 
 public:
@@ -92,6 +96,10 @@ public:
 	// 视频源的宽高度
 	int video_width;
 	int video_height;
+
+#ifdef WIN32
+	HWND sdl_player_container;
+#endif
 
 	std::string sdl_window_name;
 

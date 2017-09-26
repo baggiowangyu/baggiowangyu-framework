@@ -55,6 +55,23 @@ SDL2Player::~SDL2Player()
 
 }
 
+int SDL2Player::Initialize()
+{
+	player_state = SDL2Player_Initializing;
+	int errCode = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
+	if (errCode)
+	{
+		player_state = SDL2Player_None;
+		LOG(ERROR)<<"Initialize SDL environment failed. errCode : "<<errCode;
+		return errCode;
+	}
+
+	sdl_window_name = "SDL2Player";
+	player_state = SDL2Player_Ready;
+
+	return errCode;
+}
+
 int SDL2Player::Initialize(std::string window_name, int window_width, int window_height)
 {
 	// 初始化SDL2环境
@@ -71,6 +88,24 @@ int SDL2Player::Initialize(std::string window_name, int window_width, int window
 	player_width = window_width;
 	player_height = window_height;
 	player_state = SDL2Player_Ready;
+	return errCode;
+}
+
+int SDL2Player::Initialize(HWND player_container)
+{
+	player_state = SDL2Player_Initializing;
+	int errCode = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
+	if (errCode)
+	{
+		player_state = SDL2Player_None;
+		LOG(ERROR)<<"Initialize SDL environment failed. errCode : "<<errCode;
+		return errCode;
+	}
+
+	sdl_window_name = "SDL2Player";
+	sdl_player_container = player_container;
+	player_state = SDL2Player_Ready;
+
 	return errCode;
 }
 
