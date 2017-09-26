@@ -8,7 +8,7 @@
 #include "base/command_line.h"
 
 #include "bgMediaDecoder/bgMediaDecoder.h"
-#include "SDL2Player.h"
+#include "bgMediaPlayerEx/SDL2Player.h"
 
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -23,7 +23,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	// ÉùÃ÷²¥·ÅÆ÷
 	SDL2Player player;
 	player.Initialize("123", 1920, 1080);
-	player.Play("D:\\2.mp4");
+	player.Play("D:\\3.mp4");
 
 	message_loop.Run();
 

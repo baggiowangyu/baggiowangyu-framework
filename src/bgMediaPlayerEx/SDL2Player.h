@@ -1,7 +1,7 @@
 #ifndef _SDL2_PLAYER_H_
 #define _SDL2_PLAYER_H_
 
-#include "base/threading/thread.h"
+
 #include "base/containers/linked_list.h"
 
 #ifdef __cplusplus

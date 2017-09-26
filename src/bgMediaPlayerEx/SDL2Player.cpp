@@ -2,6 +2,7 @@
 
 #include "base/logging.h"
 #include "base/time.h"
+#include "base/threading/thread.h"
 #include "base/synchronization/waitable_event.h"
 #include "base/location.h"
 #include "base/bind.h"
