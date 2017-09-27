@@ -10,20 +10,49 @@
 #include "bgMediaDecoder/bgMediaDecoder.h"
 #include "bgMediaPlayerEx/SDL2Player.h"
 
+#include <iostream>
+
 
 int _tmain(int argc, _TCHAR* argv[])
 {
 	base::AtExitManager at_exit_manager;
 	base::MessageLoop message_loop;
 
-	LPTSTR commandline = GetCommandLine();
-	CommandLine cmdline = CommandLine::FromString(commandline);
-	cmdline.Init(argc, nullptr);
+	LPTSTR cmdline = GetCommandLine();
+	CommandLine commandline = CommandLine::FromString(cmdline);
+	commandline.Init(argc, nullptr);
+
+	std::string width_str;
+	std::string height_str;
+	std::string media_url;
+
+	if (commandline.HasSwitch("url"))
+		media_url = commandline.GetSwitchValueASCII("url");
+	else
+	{
+		// 没有目标播放地址
+		std::cout<<"缺少开关参数\"--url=...\""<<std::endl;
+		system("pause");
+		return 0;
+	}
+
+	if (commandline.HasSwitch("width"))
+		width_str = commandline.GetSwitchValueASCII("width");
+	else
+		width_str = 800;
+
+	if (commandline.HasSwitch("height"))
+		height_str = commandline.GetSwitchValueASCII("height");
+	else
+		height_str = 600;
+
+	int w = atoi(width_str.c_str());
+	int h = atoi(height_str.c_str());
 
 	// 声明播放器
 	SDL2Player player;
-	player.Initialize("123", 1920, 1080);
-	player.Play("D:\\3.mp4");
+	player.Initialize("bgSDL2Player", w, h);
+	player.Play(media_url.c_str());
 
 	message_loop.Run();
 

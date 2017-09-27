@@ -20,16 +20,21 @@ int sfp_refresh_thread(void *opaque){
 	thread_exit=0;
 	thread_pause=0;
 
-	while (!thread_exit) {
-		if(!thread_pause){
+	while (!thread_exit)
+	{
+		if(!thread_pause)
+		{
 			SDL_Event event;
 			event.type = SFM_REFRESH_EVENT;
 			SDL_PushEvent(&event);
 		}
+
 		SDL_Delay(40);
 	}
+
 	thread_exit=0;
 	thread_pause=0;
+
 	//Break
 	SDL_Event event;
 	event.type = SFM_BREAK_EVENT;
@@ -87,6 +92,7 @@ int SDL2Player::Initialize(std::string window_name, int window_width, int window
 	sdl_window_name = window_name;
 	player_width = window_width;
 	player_height = window_height;
+	decoder->UpdatePlayerScreenSize(window_width, window_height);
 	player_state = SDL2Player_Ready;
 	return errCode;
 }
@@ -261,15 +267,15 @@ void SDL2Player::PlayThread(SDL2Player *player)
 			// 在SDL中显示
 			SDL_UpdateTexture(sdl2_player->sdl_texture, nullptr, frame->data[0], frame->linesize[0]);
 			SDL_RenderClear(sdl2_player->sdl_renderer);
-			SDL_RenderCopy(sdl2_player->sdl_renderer, sdl2_player->sdl_texture, nullptr, nullptr);
+
+			// SDL_RenderCopy是用于缩放的重要API
+			SDL_RenderCopy(sdl2_player->sdl_renderer, sdl2_player->sdl_texture, nullptr, &sdl2_player->sdl_rect);
 			SDL_RenderPresent(sdl2_player->sdl_renderer);
 		}
 		else if (event.type == SDL_KEYDOWN)
 		{
 			if(event.key.keysym.sym==SDLK_SPACE)
 				thread_pause = !thread_pause;
-			if(event.key.keysym.sym==SDLK_ESCAPE)
-				thread_exit = 1;
 		}
 		else if (event.type == SDL_QUIT)
 		{

@@ -2,24 +2,71 @@
 
 ## 1.解码器的工作流程 ##
 - 初始化FFmpeg工作环境
-	- av_register_all();
-	- avformat_network_init();
+	- ```av_register_all();```
+	- ```avformat_network_init();```
 - 打开等待播放的媒体文件
-	- avformat_open_input();
+	- ```avformat_open_input(AVFormatContext **ps, const char *url, AVInputFormat *fmt, AVDictionary **options);```
+		- 输入参数：
+			- url：媒体文件的地址，包含本地路径和网络路径；
+		- 输出参数：
+			- ps：媒体格式上下文；
 - 查找媒体文件的流信息
-- 找到视频流索引
+	- ```avformat_find_stream_info(AVFormatContext *ic, AVDictionary **options);```
+		- 输入参数：
+			- ic：***avformat_open_input()***函数生成的媒体格式上下文；
+- 找到视音频流索引
+	- ```AVFormatContext::streams::AVCodecContext::codec_type```
+		- ```AVMEDIA_TYPE_VIDEO：视频流```
+		- ```AVMEDIA_TYPE_AUDIO：音频流```
+		- ```AVMEDIA_TYPE_DATA：```
+		- ```AVMEDIA_TYPE_SUBTITLE：子标题```
+		- ```AVMEDIA_TYPE_ATTACHMENT：```
+	- 根据上面的codec_type找到视频流、音频流索引，后续的视音频流解码操作都依赖于这里的索引；
 - 从视频流索引中的编码ID查找解码器
+	- ```avcodec_find_decoder(enum AVCodecID id);```
+		- 输出参数：
+			- id：***AVFormatContext::streams::AVCodecContext::codec_id*** 的值；
+		- 返回值：
+			- AVCodec*：解码器对象指针；
 - 打开解码器
+	- ```avcodec_open2(AVCodecContext *avctx, const AVCodec *codec, AVDictionary **options);```
+		- 输入参数：
+			- avctx：根据流索引，找到对应流中的编解码上下文AVCodecContext结构指针；
+			- codec：***avcodec_find_decoder()*** 找到的解码器；
 - 申请帧内存
+	- ```av_frame_alloc();```
+		- 返回值：
+			- AVFrame*：帧对象指针
 - 申请输出缓冲区内存
+	- ```av_image_get_buffer_size(enum AVPixelFormat pix_fmt, int width, int height, int align);```
+		- 输入参数：
+			- pix_fmt：
+			- width：
+			- height：
+			- align：
+	- ```av_malloc();```
 - 填充图像数组
+	- ```av_image_fill_arrays();```
 - 获取像素转换上下文
+	- ```sws_getContext();```
 - 读取编码包
+	- ```av_read_frame();```
 - 解码
+	- ```avcodec_decode_video2();```
 - 转换像素
+	- ```sws_scale(struct SwsContext *c, const uint8_t *const srcSlice[], const int srcStride[], int srcSliceY, int srcSliceH, uint8_t *const dst[], const int dstStride[]);```
+		- 输入参数：
+			- c：缩放上下文，由```sws_getContext()```函数创建
+			- srcSlice：
+			- srcStride：
+			- srcSliceY：
+			- srcSliceH：
+			- dst：
+			- dstStride：
 - 释放资源
+	- 
 
-## 1.一个控制台播放器的API调用顺序 ##
+## 2.一个控制台播放器的API调用顺序 ##
 - int stdcall SDL_Init(Uint32 flags); 
 	- 
 - SDL_CreateWindow()
