@@ -242,6 +242,7 @@ void SDL2Player::PlayThread(SDL2Player *player)
 	sdl2_player->sdl_rect.w = sdl2_player->player_width;
 	sdl2_player->sdl_rect.h = sdl2_player->player_height;
 
+	// 这里创建了一个线程，专门用于阻塞
 	SDL_CreateThread(sfp_refresh_thread,NULL,NULL);
 	SDL_Event event;
 	while (true)
@@ -271,6 +272,8 @@ void SDL2Player::PlayThread(SDL2Player *player)
 			// SDL_RenderCopy是用于缩放的重要API
 			SDL_RenderCopy(sdl2_player->sdl_renderer, sdl2_player->sdl_texture, nullptr, &sdl2_player->sdl_rect);
 			SDL_RenderPresent(sdl2_player->sdl_renderer);
+
+			SDL_Delay(40);
 		}
 		else if (event.type == SDL_KEYDOWN)
 		{

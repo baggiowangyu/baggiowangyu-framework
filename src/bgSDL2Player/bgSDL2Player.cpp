@@ -39,12 +39,12 @@ int _tmain(int argc, _TCHAR* argv[])
 	if (commandline.HasSwitch("width"))
 		width_str = commandline.GetSwitchValueASCII("width");
 	else
-		width_str = 800;
+		width_str = "800";
 
 	if (commandline.HasSwitch("height"))
 		height_str = commandline.GetSwitchValueASCII("height");
 	else
-		height_str = 600;
+		height_str = "600";
 
 	int w = atoi(width_str.c_str());
 	int h = atoi(height_str.c_str());
