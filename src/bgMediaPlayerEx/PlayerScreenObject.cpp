@@ -19,7 +19,7 @@ PlayerScreenObject::~PlayerScreenObject()
 
 }
 
-int PlayerScreenObject::Initialize(SDL_Rect *rect, unsigned char *img_data, int img_data_len)
+int PlayerScreenObject::Initialize(SDL_Rect *rect, const unsigned char *img_data, int img_data_len)
 {
 	// 先保存当前的分屏区域
 	screen_rect->h = rect->h;
@@ -38,6 +38,11 @@ int PlayerScreenObject::Initialize(SDL_Rect *rect, unsigned char *img_data, int 
 	int errCode = DrawImage(img_data_, img_data_len_);
 
 	return errCode;
+}
+
+void PlayerScreenObject::Destroy()
+{
+
 }
 
 int PlayerScreenObject::Play(std::string media_url, enum PlayMode play_mode)
@@ -70,6 +75,8 @@ int PlayerScreenObject::Stop()
 	int errCode = 0;
 
 	// 停止播放
+	working_thread_->Stop();
+	sync_thread_->Stop();
 
 	// 将初始图片画到分屏上
 	errCode = DrawImage(img_data_, img_data_len_);
@@ -86,7 +93,7 @@ int PlayerScreenObject::DrawImage(unsigned char *img_data, int img_data_len)
 
 void PlayerScreenObject::WorkingTask(PlayerScreenObject *screen)
 {
-
+	// 解码视音频，进行播放
 }
 
 void PlayerScreenObject::SyncTask(PlayerScreenObject *screen)

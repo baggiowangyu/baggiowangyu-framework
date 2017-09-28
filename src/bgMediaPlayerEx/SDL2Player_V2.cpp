@@ -5,6 +5,7 @@
 #include "SDL.h"
 #include "PlayerScreenObject.h"
 #include "SDL2Player_V2.h"
+#include "SDL2ReadyImg.h"
 
 
 SDL2PlayerV2::SDL2PlayerV2()
@@ -91,6 +92,22 @@ int SDL2PlayerV2::Initialize(int player_container_width, int player_container_he
 		return -3;
 	}
 
+	if (sub_screen_count > 1)
+	{
+		delete [] sub_screen_objects_;
+
+		sub_screen_num_ = sub_screen_count;
+		sub_screen_objects_ = new PlayerScreenObject[sub_screen_num_];
+	}
+	
+	for (int index = 0; index < sub_screen_num_; ++index)
+	{
+		SDL_Rect sdl_rect;
+		errCode = sub_screen_objects_[index].Initialize(&sdl_rect, img, img_len);
+		if (errCode != 0)
+			LOG(ERROR)<<"Sub screen ["<<index<<"] init failed. errCode : "<<errCode;
+	}
+
 	return errCode;
 }
 
@@ -123,13 +140,26 @@ int SDL2PlayerV2::ChangeSubScreenCount(int sub_screen_count)
 {
 	int errCode = 0;
 
-	// 创建新的分屏数组
+	// 其实这里可以简单一点，先停止所有分屏的播放
+	// 释放掉所有现在的分屏，创建新的分屏并逐一初始化
+	for (int index = 0; index < sub_screen_num_; ++index)
+	{
+		sub_screen_objects_[index].Stop();
+		sub_screen_objects_->Destroy();
+	}
 
-	// 检查分屏是增加了还是减少了
+	delete [] sub_screen_objects_;
 
-	// 如果分屏数增加了，那么就将原有分屏按顺序保存到新的分屏中
+	sub_screen_num_ = sub_screen_count;
+	sub_screen_objects_ = new PlayerScreenObject[sub_screen_num_];
 
-	// 如果分屏数减少了，先按顺序装满新的分屏，然后将多余的分屏停止播放，最后释放掉
+	for (int index = 0; index < sub_screen_num_; ++index)
+	{
+		SDL_Rect sdl_rect;
+		errCode = sub_screen_objects_[index].Initialize(&sdl_rect, img, img_len);
+		if (errCode != 0)
+			LOG(ERROR)<<"Sub screen ["<<index<<"] init failed. errCode : "<<errCode;
+	}
 
 	return errCode;
 }

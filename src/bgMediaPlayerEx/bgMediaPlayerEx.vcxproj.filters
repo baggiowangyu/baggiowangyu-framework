@@ -45,6 +45,9 @@
     <ClInclude Include="bgMediaPlayerBaseDef.h">
       <Filter>BaseDef</Filter>
     </ClInclude>
+    <ClInclude Include="SDL2ReadyImg.h">
+      <Filter>SDL2Player</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

@@ -122,6 +122,11 @@ std::string bgMediaObject::GetFormatName()
 	return media_format_context_->iformat->name;
 }
 
+std::string bgMediaObject::GetFormatLongName()
+{
+	return media_format_context_->iformat->long_name;
+}
+
 int64_t bgMediaObject::GetDuration()
 {
 	return media_format_context_->duration;
@@ -170,6 +175,11 @@ int bgMediaObject::GetVideoHeight()
 AVRational bgMediaObject::GetVideoFrameRate()
 {
 	return video_frame_rate_;
+}
+
+AVPixelFormat bgMediaObject::GetVideoPixelFormat()
+{
+	return video_pixel_format_;
 }
 
 AVColorSpace bgMediaObject::GetVideoColorSpace()
@@ -294,6 +304,8 @@ int bgMediaObject::DecodeMedia(AVCodec *decoder)
 			audio_duration_ = audio_stream_->duration * av_q2d(audio_stream_->time_base);
 			audio_bit_rate_ = audio_codec_context_->bit_rate;
 			audio_frame_rate_ = audio_codec_context_->framerate;
+
+			break;
 		}
 	}
 

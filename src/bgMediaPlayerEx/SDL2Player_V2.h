@@ -25,13 +25,21 @@ public:
 	 * 参数：
 	 *	@player_container_width		播放器容器的宽度
 	 *	@player_container_height	播放器容器的高度
+	 *	@player_gui_hwnd			GUI播放器容器句柄
+	 *	@sub_screen_count			分屏数量，默认为1
 	 */
 	int Initialize(int player_container_width, int player_container_height, void *player_gui_hwnd = nullptr, int sub_screen_count = 1);
+
+	/**
+	 * 销毁播放器容器
+	 */
 	void Destroy();
 
 public:
 	/**
 	 * 更改分屏数
+	 * 参数
+	 *	@sub_screen_count	分屏数量
 	 */
 	int ChangeSubScreenCount(int sub_screen_count);
 
@@ -47,11 +55,15 @@ public:
 
 	/**
 	 * 暂停播放
+	 * 参数：
+	 *	@
 	 */
 	int Pause(int sub_screen_index);
 
 	/**
 	 * 停止播放
+	 * 参数：
+	 *	@
 	 */
 	int Stop(int sub_screen_index);
 

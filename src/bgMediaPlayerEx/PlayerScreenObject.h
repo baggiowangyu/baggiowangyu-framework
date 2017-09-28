@@ -21,19 +21,61 @@ public:
 	~PlayerScreenObject();
 
 public:
-	int Initialize(SDL_Rect *rect, unsigned char *img_data, int img_data_len);
+	/**
+	 * 初始化分屏播放器
+	 * 参数：
+	 *	@rect			分屏所在矩形区域
+	 *	@img_data		就绪状态下显示的图片
+	 *	@img_data_len	图片大小
+	 */
+	int Initialize(SDL_Rect *rect, const unsigned char *img_data, int img_data_len);
+
+	/**
+	 * 销毁分屏播放器
+	 */
 	void Destroy();
 
 public:
+	/**
+	 * 播放
+	 * 参数：
+	 *	@media_url		媒体路径
+	 *	@play_mode		播放模式，实时流、录像流
+	 */
 	int Play(std::string media_url, enum PlayMode play_mode);
+
+	/**
+	 * 暂停
+	 */
 	int Pause();
+
+	/**
+	 * 停止
+	 */
 	int Stop();
 
 private:
+	/**
+	 * 绘制图像
+	 * 参数：
+	 *	@img_data		就绪状态下显示的图片
+	 *	@img_data_len	图片大小
+	 */
 	int DrawImage(unsigned char *img_data, int img_data_len);
 
 private:
+	/**
+	 * 播放任务
+	 * 参数：
+	 *	@screen
+	 */
 	static void WorkingTask(PlayerScreenObject *screen);
+
+	/**
+	 * 同步控制任务
+	 * 参数：
+	 *	@screen
+	 */
 	static void SyncTask(PlayerScreenObject *screen);
 
 private:
@@ -41,8 +83,13 @@ private:
 	base::Thread *sync_thread_;
 
 private:
+	// 分屏区域
 	SDL_Rect *screen_rect;
+
+	// 空闲状态显示的图片
 	unsigned char *img_data_;
+
+	// 图片数据大小
 	int img_data_len_;
 
 private:
