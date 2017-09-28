@@ -13,14 +13,8 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="SDL2Player">
-      <UniqueIdentifier>{9c477712-21cd-4d6d-bb64-41b162293b52}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ScreenObject">
-      <UniqueIdentifier>{7c90917e-798c-4398-bef9-3784debb42de}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="BaseDef">
-      <UniqueIdentifier>{29dacf2a-d4c2-401b-94f6-b56be8bd9dfa}</UniqueIdentifier>
+    <Filter Include="bgMediaObject">
+      <UniqueIdentifier>{8a44ca8a-aa01-4ab0-952e-683d58cab6df}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -33,37 +27,25 @@
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SDL2Player.h">
-      <Filter>SDL2Player</Filter>
+    <ClInclude Include="bgMediaUtil.h">
+      <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SDL2Player_V2.h">
-      <Filter>SDL2Player</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerScreenObject.h">
-      <Filter>ScreenObject</Filter>
-    </ClInclude>
-    <ClInclude Include="bgMediaPlayerBaseDef.h">
-      <Filter>BaseDef</Filter>
+    <ClInclude Include="bgMediaObject.h">
+      <Filter>bgMediaObject</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="bgMediaPlayerEx.cpp">
+    <ClCompile Include="bgMediaUtil.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="dllmain.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SDL2Player.cpp">
-      <Filter>SDL2Player</Filter>
-    </ClCompile>
-    <ClCompile Include="SDL2Player_V2.cpp">
-      <Filter>SDL2Player</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerScreenObject.cpp">
-      <Filter>ScreenObject</Filter>
+    <ClCompile Include="bgMediaObject.cpp">
+      <Filter>bgMediaObject</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

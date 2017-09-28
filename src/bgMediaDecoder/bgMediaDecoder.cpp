@@ -92,7 +92,6 @@ void bgMediaDecoder::Working(bgMediaDecoder *decoder)
 	bgMediaDecoder *bg_decoder = (bgMediaDecoder*)decoder;
 
 	// 打开输入文件（流）
-	
 	int errCode = avformat_open_input(&bg_decoder->avformat_input_context, bg_decoder->media_url_a.c_str(), nullptr, nullptr);
 	if (errCode != 0)
 	{
@@ -155,8 +154,6 @@ void bgMediaDecoder::Working(bgMediaDecoder *decoder)
 		return ;
 	}
 
-	// 申请帧内存
-	//AVFrame *av_frame = av_frame_alloc();
 	AVFrame *av_frame_yuv = av_frame_alloc();
 
 	// 申请输出缓冲区内存
