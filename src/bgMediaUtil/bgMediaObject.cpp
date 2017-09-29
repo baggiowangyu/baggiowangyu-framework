@@ -49,7 +49,7 @@ int bgMediaObject::Open(std::string media_url)
 	// 这里可以提取总体信息了
 	format_duration_ = media_format_context_->duration;
 	format_overall_bit_rate_ = media_format_context_->bit_rate;
-	format_codec_id_ = media_format_context_->data_codec_id;
+	format_codec_id_ = media_format_context_->data_codec_id;	// 事实证明这个字段没什么鸟用
 
 	int stream_count = media_format_context_->nb_streams;
 	for (int index = 0; index < stream_count; ++index)
@@ -190,6 +190,11 @@ AVColorSpace bgMediaObject::GetVideoColorSpace()
 AVColorRange bgMediaObject::GetVideoColorRange()
 {
 	return video_color_range_;
+}
+
+int bgMediaObject::GetPictureSize()
+{
+	return avpicture_get_size(video_pixel_format_, video_resolution_w_, video_resolution_h_);
 }
 
 AVCodecID bgMediaObject::GetAudioCodecID()

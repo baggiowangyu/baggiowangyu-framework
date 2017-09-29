@@ -22,6 +22,12 @@
     <Filter Include="BaseDef">
       <UniqueIdentifier>{29dacf2a-d4c2-401b-94f6-b56be8bd9dfa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="SDL2Player\V1">
+      <UniqueIdentifier>{261bd248-660d-4b13-a00b-737a65e3e690}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SDL2Player\V2">
+      <UniqueIdentifier>{67f7a9bf-a15f-4cdd-bb97-497b331372cb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -33,12 +39,6 @@
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SDL2Player.h">
-      <Filter>SDL2Player</Filter>
-    </ClInclude>
-    <ClInclude Include="SDL2Player_V2.h">
-      <Filter>SDL2Player</Filter>
-    </ClInclude>
     <ClInclude Include="PlayerScreenObject.h">
       <Filter>ScreenObject</Filter>
     </ClInclude>
@@ -47,6 +47,12 @@
     </ClInclude>
     <ClInclude Include="SDL2ReadyImg.h">
       <Filter>SDL2Player</Filter>
+    </ClInclude>
+    <ClInclude Include="SDL2Player.h">
+      <Filter>SDL2Player\V1</Filter>
+    </ClInclude>
+    <ClInclude Include="SDL2Player_V2.h">
+      <Filter>SDL2Player\V2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -59,14 +65,14 @@
     <ClCompile Include="dllmain.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SDL2Player.cpp">
-      <Filter>SDL2Player</Filter>
-    </ClCompile>
-    <ClCompile Include="SDL2Player_V2.cpp">
-      <Filter>SDL2Player</Filter>
-    </ClCompile>
     <ClCompile Include="PlayerScreenObject.cpp">
       <Filter>ScreenObject</Filter>
+    </ClCompile>
+    <ClCompile Include="SDL2Player.cpp">
+      <Filter>SDL2Player\V1</Filter>
+    </ClCompile>
+    <ClCompile Include="SDL2Player_V2.cpp">
+      <Filter>SDL2Player\V2</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -53,7 +53,7 @@ int SDL2PlayerV2::Initialize(int player_container_width, int player_container_he
 	if (player_gui_hwnd == nullptr)
 	{
 		// 创建一个Console窗口
-		sdl_window_ = SDL_CreateWindow(container_name_.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, player_container_width_, player_container_height_, SDL_WINDOW_OPENGL);
+		sdl_window_ = SDL_CreateWindow(container_name_.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, player_container_width_, player_container_height_, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
 	}
 	else
 	{
@@ -100,13 +100,7 @@ int SDL2PlayerV2::Initialize(int player_container_width, int player_container_he
 		sub_screen_objects_ = new PlayerScreenObject[sub_screen_num_];
 	}
 	
-	for (int index = 0; index < sub_screen_num_; ++index)
-	{
-		SDL_Rect sdl_rect;
-		errCode = sub_screen_objects_[index].Initialize(&sdl_rect, img, img_len);
-		if (errCode != 0)
-			LOG(ERROR)<<"Sub screen ["<<index<<"] init failed. errCode : "<<errCode;
-	}
+	errCode = InitSubScreens();
 
 	return errCode;
 }
@@ -153,13 +147,7 @@ int SDL2PlayerV2::ChangeSubScreenCount(int sub_screen_count)
 	sub_screen_num_ = sub_screen_count;
 	sub_screen_objects_ = new PlayerScreenObject[sub_screen_num_];
 
-	for (int index = 0; index < sub_screen_num_; ++index)
-	{
-		SDL_Rect sdl_rect;
-		errCode = sub_screen_objects_[index].Initialize(&sdl_rect, img, img_len);
-		if (errCode != 0)
-			LOG(ERROR)<<"Sub screen ["<<index<<"] init failed. errCode : "<<errCode;
-	}
+	errCode = InitSubScreens();
 
 	return errCode;
 }
@@ -190,6 +178,60 @@ int SDL2PlayerV2::Stop(int sub_screen_index)
 
 	// 找到对应的分屏，下发指令
 	errCode = sub_screen_objects_[sub_screen_index].Stop();
+
+	return errCode;
+}
+
+int SDL2PlayerV2::InitSubScreens()
+{
+	int errCode = 0;
+
+	// 这里根据分屏数计算每一个屏在渲染区的矩形区域
+	switch (sub_screen_num_)
+	{
+	case 1:
+		{
+			// 1分屏，矩形区域就是整个渲染区域
+			SDL_Rect rect;
+			rect.x = 0;
+			rect.y = 0;
+			rect.w = player_container_width_;
+			rect.h = player_container_height_;
+
+			errCode = sub_screen_objects_[0].Initialize(&rect, img, img_len, sdl_renderer_, sdl_texture_);
+			if (errCode != 0)
+				LOG(ERROR)<<"Sub screen [0] init failed. errCode : "<<errCode;
+		}
+		break;
+	case 4:
+		{
+			// 4分屏
+			errCode = -9999;
+		}
+		break;
+	case 7:
+		{
+			// 7分屏
+			errCode = -9999;
+		}
+		break;
+	case 9:
+		{
+			// 9分屏
+			errCode = -9999;
+		}
+		break;
+	case 16:
+		{
+			// 16分屏
+			errCode = -9999;
+		}
+		break;
+	default:
+		// 不支持的分屏
+		errCode = -9999;
+		break;
+	}
 
 	return errCode;
 }

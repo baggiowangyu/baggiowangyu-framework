@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="V2">
+      <UniqueIdentifier>{7c37bf7d-8117-4512-9b90-7832d2a986f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="V1">
+      <UniqueIdentifier>{06bdb500-ba83-4263-9217-bef5769ae60f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -27,19 +33,25 @@
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="bgMediaDecoderV2.h">
+      <Filter>V2</Filter>
+    </ClInclude>
     <ClInclude Include="bgMediaDecoder.h">
-      <Filter>头文件</Filter>
+      <Filter>V1</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="bgMediaDecoder.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="dllmain.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="bgMediaDecoderV2.cpp">
+      <Filter>V2</Filter>
+    </ClCompile>
+    <ClCompile Include="bgMediaDecoder.cpp">
+      <Filter>V1</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

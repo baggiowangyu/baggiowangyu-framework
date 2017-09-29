@@ -74,6 +74,8 @@ private:
 	// 播放器分屏数组
 	PlayerScreenObject *sub_screen_objects_;
 
+	int InitSubScreens();
+
 private:
 	// 播放容器名称
 	std::string container_name_;

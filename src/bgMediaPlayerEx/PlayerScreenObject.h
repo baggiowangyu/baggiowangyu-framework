@@ -8,8 +8,11 @@
 #include <iostream>
 #include "bgMediaPlayerBaseDef.h"
 
+struct SDL_Renderer;
+struct SDL_Texture;
 struct SDL_Rect;
 class bgMediaObject;
+class bgMediaDecoderV2;
 class base::Thread;
 
 // 播放器分屏对象
@@ -28,7 +31,7 @@ public:
 	 *	@img_data		就绪状态下显示的图片
 	 *	@img_data_len	图片大小
 	 */
-	int Initialize(SDL_Rect *rect, const unsigned char *img_data, int img_data_len);
+	int Initialize(SDL_Rect *rect, const unsigned char *img_data, int img_data_len, SDL_Renderer *renderer, SDL_Texture *texture);
 
 	/**
 	 * 销毁分屏播放器
@@ -53,6 +56,13 @@ public:
 	 * 停止
 	 */
 	int Stop();
+
+public:
+	bgMediaDecoderV2* GetDecoderV2Object();
+	bgMediaObject* GetMediaObject();
+	SDL_Renderer* GetPlayerRenderer();
+	SDL_Texture* GetPlayerTexture();
+	SDL_Rect* GetSubScreenRect();
 
 private:
 	/**
@@ -83,6 +93,12 @@ private:
 	base::Thread *sync_thread_;
 
 private:
+	// 
+	SDL_Renderer *sdl_renderer_;
+
+	// 
+	SDL_Texture *sdl_texture_;
+
 	// 分屏区域
 	SDL_Rect *screen_rect;
 
@@ -98,6 +114,9 @@ private:
 
 	// 播放器播放时需要的参数
 	int64_t total_duration_;
+
+	// 视音频解码器
+	bgMediaDecoderV2 *media_decoder_;
 };
 
 #endif

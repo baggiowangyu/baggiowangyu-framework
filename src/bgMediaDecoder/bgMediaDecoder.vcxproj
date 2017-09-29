@@ -88,11 +88,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bgMediaDecoder.h" />
+    <ClInclude Include="bgMediaDecoderV2.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bgMediaDecoder.cpp" />
+    <ClCompile Include="bgMediaDecoderV2.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

@@ -10,6 +10,7 @@ extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 #include "libavutil/avutil.h"
+#include "libavutil/mem.h"
 #ifdef __cplusplus
 };
 #endif
@@ -96,6 +97,8 @@ public:
 
 	// 视频色彩范围
 	AVColorRange GetVideoColorRange();
+
+	int GetPictureSize();
 
 public:
 	// 音频流信息
