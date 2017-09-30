@@ -150,7 +150,7 @@ void PlayerScreenObject::WorkingTask(PlayerScreenObject *screen)
 
 	// ÄÃÖ¡ÂÊ
 	AVRational video_frame_rate = screen->GetMediaObject()->GetVideoFrameRate();
-	int delay = 1000 / (video_frame_rate.num / video_frame_rate.den);
+	int delay = 1000 * 100 / (video_frame_rate.num / video_frame_rate.den);
 
 	enum AVPixelFormat pix_fmt = screen->GetMediaObject()->GetVideoPixelFormat();
 

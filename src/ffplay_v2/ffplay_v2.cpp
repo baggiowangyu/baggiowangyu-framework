@@ -3386,37 +3386,37 @@ int _tmain(int argc, _TCHAR* argv[])
 	int flags;
     VideoState *is;
 
-    init_dynload();
-
-    av_log_set_flags(AV_LOG_SKIP_REPEATED);
-    parse_loglevel(argc, argv, options);
-
-    /* register all codecs, demux and protocols */
-#if CONFIG_AVDEVICE
-    avdevice_register_all();
-#endif
-#if CONFIG_AVFILTER
-    avfilter_register_all();
-#endif
+//    init_dynload();
+//
+//    av_log_set_flags(AV_LOG_SKIP_REPEATED);
+//    parse_loglevel(argc, argv, options);
+//
+//    /* register all codecs, demux and protocols */
+//#if CONFIG_AVDEVICE
+//    avdevice_register_all();
+//#endif
+//#if CONFIG_AVFILTER
+//    avfilter_register_all();
+//#endif
     av_register_all();
     avformat_network_init();
 
-    init_opts();
+    //init_opts();
 
-    signal(SIGINT , sigterm_handler); /* Interrupt (ANSI).    */
-    signal(SIGTERM, sigterm_handler); /* Termination (ANSI).  */
+    //signal(SIGINT , sigterm_handler); /* Interrupt (ANSI).    */
+    //signal(SIGTERM, sigterm_handler); /* Termination (ANSI).  */
 
-    show_banner(argc, argv, options);
+    //show_banner(argc, argv, options);
 
-    parse_options(NULL, argc, argv, options, opt_input_file);
+    //parse_options(NULL, argc, argv, options, opt_input_file);
 
-    if (!input_filename) {
-        show_usage();
-        av_log(NULL, AV_LOG_FATAL, "An input file must be specified\n");
-        av_log(NULL, AV_LOG_FATAL,
-               "Use -h to get full help or, even better, run 'man %s'\n", program_name);
-        exit(1);
-    }
+    //if (!input_filename) {
+    //    show_usage();
+    //    av_log(NULL, AV_LOG_FATAL, "An input file must be specified\n");
+    //    av_log(NULL, AV_LOG_FATAL,
+    //           "Use -h to get full help or, even better, run 'man %s'\n", program_name);
+    //    exit(1);
+    //}
 
     if (display_disable) {
         video_disable = 1;
