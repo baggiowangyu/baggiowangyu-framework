@@ -40,6 +40,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	// 托管命令行参数
 	LPTSTR commandline = GetCommandLine();
 	CommandLine cmdline = CommandLine::FromString(commandline);
+	cmdline.Init(argc, nullptr);
 
 	// 接下来可以开展核心业务
 
