@@ -91,12 +91,14 @@ COPY $(SolutionDir)ext\SDL\lib\$(ProcessorArchitecture)\SDL2.dll $(OutDir)</Comm
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cmdutils.h" />
     <ClInclude Include="SDL2Player.h" />
     <ClInclude Include="SDL2PlayerStructure.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="cmdutils.cpp" />
     <ClCompile Include="SDL2ConsolePlayer.cpp" />
     <ClCompile Include="SDL2Player.cpp" />
     <ClCompile Include="stdafx.cpp">

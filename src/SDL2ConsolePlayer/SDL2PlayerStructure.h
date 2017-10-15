@@ -1,6 +1,20 @@
 #ifndef _SDL2_PLAYER_STRUCTURE_H_
 #define _SDL2_PLAYER_STRUCTURE_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "libavcodec/avcodec.h"
+#include "libavformat/avformat.h"
+#include "libswscale/swscale.h"
+
+#ifdef __cplusplus
+	};
+#endif
+
+
+
 const char program_name[] = "bgMediaPlayer";
 const int program_birth_year = 2017;
 
@@ -44,6 +58,7 @@ typedef struct URLContext {
 	int is_connected;
 	AVIOInterruptCB interrupt_callback;
 } URLContext;
+
 typedef struct URLProtocol {
 	const char *name;
 	int (*url_open)(URLContext *h, const char *url, int flags);

@@ -19,6 +19,9 @@
     <Filter Include="V1">
       <UniqueIdentifier>{06bdb500-ba83-4263-9217-bef5769ae60f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="V3">
+      <UniqueIdentifier>{418ca0b4-42ae-413f-96e8-0656342d96d2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -39,6 +42,9 @@
     <ClInclude Include="bgMediaDecoder.h">
       <Filter>V1</Filter>
     </ClInclude>
+    <ClInclude Include="bgMediaDecoder_V3.h">
+      <Filter>V3</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -52,6 +58,9 @@
     </ClCompile>
     <ClCompile Include="bgMediaDecoder.cpp">
       <Filter>V1</Filter>
+    </ClCompile>
+    <ClCompile Include="bgMediaDecoder_V3.cpp">
+      <Filter>V3</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

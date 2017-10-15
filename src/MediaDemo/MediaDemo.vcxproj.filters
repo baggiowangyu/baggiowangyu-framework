@@ -22,6 +22,9 @@
     <Filter Include="音视频分析">
       <UniqueIdentifier>{74a935fb-af4e-4268-b5a3-605930438c49}</UniqueIdentifier>
     </Filter>
+    <Filter Include="音视频解码">
+      <UniqueIdentifier>{52a2cea7-045f-40f7-8b65-cc5896b2cbd5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
