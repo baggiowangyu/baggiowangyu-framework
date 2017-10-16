@@ -52,6 +52,12 @@ public:
 	void Close();
 
 public:
+	int StartEncode();
+	int EncodeFrame(AVFrame *frame_data, int frame_type);
+	int EndEncode();
+
+public:
+	base::Thread *encode_thread_;
 	static void EncodeTask(bgMediaEncoder *encoder);
 
 public:
@@ -65,6 +71,12 @@ public:
 	AVCodecContext *encode_codec_context_;
 
 	AVCodec *encode_codec_;
+
+	AVFrame *frame_;
+	uint32_t picture_size_;
+	uint8_t *picture_buffer_;
+	AVPacket *packet_;
+	uint32_t y_size_;
 };
 
 #endif

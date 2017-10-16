@@ -3,11 +3,14 @@
 
 #include "stdafx.h"
 
+#include "base/bind.h"
+#include "base/location.h"
 
 #include "bgMediaEncoder.h"
 
 bgMediaEncoder::bgMediaEncoder(bgMediaEncoderV3Notify *notifer)
 	: notifer_(notifer)
+	, encode_thread_(new base::Thread("bgMediaEncoder"))
 {
 
 }
@@ -28,7 +31,7 @@ int bgMediaEncoder::OpenOutputFile(const char *path, AVCodecID codec_id, MediaVi
 	format_context_ = avformat_alloc_context();
 
 	// 根据文件名猜测一下格式
-	output_format_context_ = av_guess_format(path);
+	output_format_context_ = av_guess_format(nullptr, path, nullptr);
 	format_context_->oformat = output_format_context_;
 
 	// 打开输出路径
@@ -93,6 +96,10 @@ int bgMediaEncoder::OpenOutputFile(const char *path, AVCodecID codec_id, MediaVi
 		return errCode;
 	}
 
+	// 一切准备工作都做好了，接下来需要做的就是启动线程进行编码
+	encode_thread_->Start();
+	encode_thread_->message_loop()->PostTask(FROM_HERE, base::Bind(&bgMediaEncoder::EncodeTask, this));
+
 	return errCode;
 }
 
@@ -101,7 +108,45 @@ void bgMediaEncoder::Close()
 
 }
 
-void bgMediaEncoder::EncodeTask(bgMediaEncoder *encoder)
+int bgMediaEncoder::StartEncode()
+{
+	int errCode = 0;
+
+	AVFrame *frame = av_frame_alloc();
+	uint32_t picture_size = avpicture_get_size(encode_codec_context_->pix_fmt, encode_codec_context_->width, encode_codec_context_->height);
+	uint8_t *picture_buffer = (uint8_t *)av_malloc(picture_size);
+	avpicture_fill((AVPicture *)frame, picture_buffer, encode_codec_context_->pix_fmt, encode_codec_context_->width, encode_codec_context_->height); 
+
+	// 首先尝试写入文件头
+	errCode = avformat_write_header(format_context_, nullptr);
+
+	AVPacket packet;
+	errCode = av_new_packet(&packet, picture_size);
+
+	uint32_t y_size = encode_codec_context_->width * encode_codec_context_->height;
+
+	return errCode;
+}
+
+int bgMediaEncoder::EncodeFrame(AVFrame *frame_data, int frame_type)
+{
+	int errCode = 0;
+	return errCode;
+}
+
+int bgMediaEncoder::EndEncode()
 {
 
+}
+
+void bgMediaEncoder::EncodeTask(bgMediaEncoder *encoder)
+{
+	/**
+
+	  此线程存在一个问题，
+	
+	 **/
+	
+
+	// 这里应该是从一个地方得到所有的视频帧
 }
