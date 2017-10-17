@@ -436,7 +436,7 @@ struct NET_EXPORT_PRIVATE QuicRstStreamFrame {
   QuicRstStreamFrame() {}
   QuicRstStreamFrame(QuicStreamId stream_id, QuicRstStreamErrorCode error_code)
       : stream_id(stream_id), error_code(error_code) {
-    DCHECK_LE(error_code, std::numeric_limits<uint8>::max());
+    DCHECK_LE(error_code, (std::numeric_limits<uint8>::max)());
   }
 
   QuicStreamId stream_id;

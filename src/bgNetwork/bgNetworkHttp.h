@@ -18,20 +18,26 @@
 
 #include <string>
 
-class bgNetworkHttp
+//
+// Õâli
+//
+
+class bgNetworkHttpTransaction
 {
 public:
-	bgNetworkHttp(net::RequestPriority priority, net::HttpTransactionFactory* factory);
-	virtual ~bgNetworkHttp();
+	bgNetworkHttpTransaction(net::RequestPriority priority, net::HttpTransactionFactory* factory);
+	virtual ~bgNetworkHttpTransaction();
 
 public:
 	void Start(const net::HttpRequestInfo* request, const net::BoundNetLog& net_log);
-	bool is_done();
-	int error();
+	bool is_done() const { return state_ == DONE; }
+	int error() const { return error_; }
 
-	const net::HttpResponseInfo* response_info();
+	const net::HttpResponseInfo* response_info() const {
+		return trans_->GetResponseInfo();
+	}
 
-	std::string& content();
+	const std::string& content() const { return content_; }
 
 private:
 	enum State {
