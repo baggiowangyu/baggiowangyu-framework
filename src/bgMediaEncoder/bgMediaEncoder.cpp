@@ -131,6 +131,9 @@ int bgMediaEncoder::StartEncode()
 int bgMediaEncoder::EncodeFrame(AVFrame *frame_data, int frame_type)
 {
 	int errCode = 0;
+
+	// 视音频打包注意混合器（Muxing）
+
 	return errCode;
 }
 

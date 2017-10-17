@@ -7,7 +7,7 @@
 #include "base/command_line.h"
 #include "base/message_loop.h"
 
-#include "SDL2Player.h"
+//#include "SDL2Player.h"
 
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -22,8 +22,13 @@ int _tmain(int argc, _TCHAR* argv[])
 	cmdline.Init(argc, nullptr);
 
 	// 接下来可以开展核心业务
-	SDL2Player player;
-	int errCode = player.Init("D:\\V21205-124737.avi");
+	//SDL2Player player;
+	//int errCode = player.Init("rtmp://127.0.0.1:1935/live/1");
+
+	// 首先解码视频
+
+	// 然后渲染播放，窗口可以放大
+
 
 	message_loop.Run();
 
