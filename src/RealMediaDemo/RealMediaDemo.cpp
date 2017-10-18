@@ -9,6 +9,7 @@
 #include "url/gurl.h"
 
 #include "../bgNetwork/bgNetworkHttp.h"
+#include "../bgNetwork/bgNetworkHttpCache.h"
 
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -23,14 +24,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	cmdline.Init(argc, nullptr);
 
 	// 接下来可以开展核心业务
-	net::HttpRequestInfo request;
-	request.url = GURL("http://localhost/start/1.html");
-	request.method = "GET";
-	//request.extra_headers.SetHeaderIfMissing("", "");
-
-	net::RequestPriority priority;
-	net::HttpCache http_cache;
-	bgNetworkHttp http(DEFAULT_PRIORITY, );
+	bgHttpCache
 
 	return 0;
 }

@@ -22,7 +22,7 @@
 typedef base::hash_map<std::string, const bgTransaction*> bgTransactionMap;
 static bgTransactionMap bg_transactions;
 
-const bgTransaction* FindMockTransaction(const GURL& url) {
+const bgTransaction* FindbgTransaction(const GURL& url) {
 	// look for overrides:
 	bgTransactionMap::const_iterator it = bg_transactions.find(url.spec());
 	if (it != bg_transactions.end())
@@ -31,11 +31,11 @@ const bgTransaction* FindMockTransaction(const GURL& url) {
 	return NULL;
 }
 
-void AddMockTransaction(const bgTransaction* trans) {
+void AddbgTransaction(const bgTransaction* trans) {
 	bg_transactions[GURL(trans->url).spec()] = trans;
 }
 
-void RemoveMockTransaction(const bgTransaction* trans) {
+void RemovebgTransaction(const bgTransaction* trans) {
 	bg_transactions.erase(GURL(trans->url).spec());
 }
 

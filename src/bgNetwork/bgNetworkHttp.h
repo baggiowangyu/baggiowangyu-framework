@@ -54,19 +54,19 @@ const bgTransaction* FindbgTransaction(const GURL& url);
 
 // Add/Remove a mock transaction that can be accessed via FindMockTransaction.
 // There can be only one MockTransaction associated with a given URL.
-void AddMockTransaction(const bgTransaction* trans);
-void RemoveMockTransaction(const bgTransaction* trans);
+void AddbgTransaction(const bgTransaction* trans);
+void RemovebgTransaction(const bgTransaction* trans);
 
-struct ScopedMockTransaction : bgTransaction {
-	ScopedMockTransaction() {
-		AddMockTransaction(this);
+struct ScopedbgTransaction : bgTransaction {
+	ScopedbgTransaction() {
+		AddbgTransaction(this);
 	}
-	explicit ScopedMockTransaction(const bgTransaction& t)
+	explicit ScopedbgTransaction(const bgTransaction& t)
 		: bgTransaction(t) {
-			AddMockTransaction(this);
+			AddbgTransaction(this);
 	}
-	~ScopedMockTransaction() {
-		RemoveMockTransaction(this);
+	~ScopedbgTransaction() {
+		RemovebgTransaction(this);
 	}
 };
 
