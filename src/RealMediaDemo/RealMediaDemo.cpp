@@ -29,8 +29,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	//request.extra_headers.SetHeaderIfMissing("", "");
 
 	net::RequestPriority priority;
+	net::HttpCache http_cache;
 	bgNetworkHttp http(DEFAULT_PRIORITY, );
-	h
 
 	return 0;
 }

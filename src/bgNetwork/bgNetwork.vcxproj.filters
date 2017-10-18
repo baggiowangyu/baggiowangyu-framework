@@ -16,6 +16,9 @@
     <Filter Include="Http">
       <UniqueIdentifier>{2a906bd9-3ca7-496b-823e-13bcfeeca8e8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Callback">
+      <UniqueIdentifier>{56d917ea-d9ca-485d-af74-8c66b66dfd8a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -30,6 +33,12 @@
     <ClInclude Include="bgNetworkHttp.h">
       <Filter>Http</Filter>
     </ClInclude>
+    <ClInclude Include="bgNetworkHttpCache.h">
+      <Filter>Http</Filter>
+    </ClInclude>
+    <ClInclude Include="bgCompletionCallback.h">
+      <Filter>Callback</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -37,6 +46,12 @@
     </ClCompile>
     <ClCompile Include="bgNetworkHttp.cpp">
       <Filter>Http</Filter>
+    </ClCompile>
+    <ClCompile Include="bgNetworkHttpCache.cpp">
+      <Filter>Http</Filter>
+    </ClCompile>
+    <ClCompile Include="bgCompletionCallback.cpp">
+      <Filter>Callback</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
