@@ -16,6 +16,9 @@
     <Filter Include="player">
       <UniqueIdentifier>{8bb10649-5f35-41ad-88d6-893e11c672a4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Container">
+      <UniqueIdentifier>{3b111c99-02db-4677-a3cd-083042e37716}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -27,6 +30,12 @@
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="SDL2Player.h">
+      <Filter>player</Filter>
+    </ClInclude>
+    <ClInclude Include="MediaFrameContainer.h">
+      <Filter>Container</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -34,6 +43,12 @@
     </ClCompile>
     <ClCompile Include="SDL2ConsolePlayer.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SDL2Player.cpp">
+      <Filter>player</Filter>
+    </ClCompile>
+    <ClCompile Include="MediaFrameContainer.cpp">
+      <Filter>Container</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -14,6 +14,7 @@ extern "C" {
 #include "libswresample/swresample.h"
 #include "libavutil/avutil.h"
 #include "libavutil/pixdesc.h"
+#include "libavutil/imgutils.h"
 #ifdef __cplusplus
 	};
 #endif
