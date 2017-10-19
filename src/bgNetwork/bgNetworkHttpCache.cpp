@@ -4,25 +4,25 @@
 #include "bgCompletionCallback.h"
 #include "gtest/gtest.h"
 
-struct MockTransaction {
-	const char* url;
-	const char* method;
-	// If |request_time| is unspecified, the current time will be used.
-	base::Time request_time;
-	const char* request_headers;
-	int load_flags;
-	const char* status;
-	const char* response_headers;
-	// If |response_time| is unspecified, the current time will be used.
-	base::Time response_time;
-	const char* data;
-	int test_mode;
-	MockTransactionHandler handler;
-	net::CertStatus cert_status;
-	// Value returned by MockNetworkTransaction::Start (potentially
-	// asynchronously if |!(test_mode & TEST_MODE_SYNC_NET_START)|.)
-	net::Error return_code;
-};
+//struct bgTransaction {
+//	const char* url;
+//	const char* method;
+//	// If |request_time| is unspecified, the current time will be used.
+//	base::Time request_time;
+//	const char* request_headers;
+//	int load_flags;
+//	const char* status;
+//	const char* response_headers;
+//	// If |response_time| is unspecified, the current time will be used.
+//	base::Time response_time;
+//	const char* data;
+//	int test_mode;
+//	bgTransactionHandler handler;
+//	net::CertStatus cert_status;
+//	// Value returned by MockNetworkTransaction::Start (potentially
+//	// asynchronously if |!(test_mode & TEST_MODE_SYNC_NET_START)|.)
+//	net::Error return_code;
+//};
 
 namespace {
 

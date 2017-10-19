@@ -13,6 +13,7 @@ extern "C" {
 #include "libswscale/swscale.h"
 #include "libswresample/swresample.h"
 #include "libavutil/avutil.h"
+#include "libavutil/pixdesc.h"
 #ifdef __cplusplus
 	};
 #endif
@@ -34,7 +35,7 @@ typedef struct _MediaVideoInfo_
 	AVPixelFormat pixel_format_;
 	int codec_width_;		// 源视频宽度
 	int codec_height_;		// 源视频高度
-	int64_t bit_rate_;			// 比特率，这里仅供参考，解码时
+	int64_t bit_rate_;		// 比特率，这里仅供参考，解码时
 	int gop_size_;			// 图组中图片的数量，解码的时候应该是没用的，编码的时候由用户摄这是
 	AVRational time_base_;	// 
 	int qmin_;				// 

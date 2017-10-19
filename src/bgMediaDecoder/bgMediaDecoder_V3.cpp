@@ -32,6 +32,12 @@ int bgMediaDecoderV3::OpenMedia(const char *url)
 
 	input_format_context_ = avformat_alloc_context();
 	errCode = avformat_open_input(&input_format_context_, url, nullptr, nullptr);
+	if (errCode != 0)
+	{
+		std::string errstr = "open input url failed ...";
+		notifer_->ErrorNotify(errstr, errCode);
+		return -1;
+	}
 
 	avformat_find_stream_info(input_format_context_, nullptr);
 
@@ -45,7 +51,9 @@ int bgMediaDecoderV3::OpenMedia(const char *url)
 			input_video_codec_ = avcodec_find_decoder(input_video_codec_context_->codec_id);
 			if (!input_video_codec_)
 			{
-				LOG(ERROR)<<"not find video decoder...";
+				std::string errstr = "not find video decoder...";
+				errCode = -2;
+				notifer_->ErrorNotify(errstr, errCode);
 				break;
 			}
 
@@ -53,6 +61,8 @@ int bgMediaDecoderV3::OpenMedia(const char *url)
 			if (errCode != 0)
 			{
 				LOG(ERROR)<<"open video decoder failed... errcode : "<<errCode;
+				std::string errstr = "open video decoder failed...";
+				notifer_->ErrorNotify(errstr, errCode);
 				break;
 			}
 
@@ -64,6 +74,9 @@ int bgMediaDecoderV3::OpenMedia(const char *url)
 			if (!input_audio_codec_)
 			{
 				LOG(ERROR)<<"not find audio decoder...";
+				std::string errstr = "not find audio decoder...";
+				errCode = -3;
+				notifer_->ErrorNotify(errstr, errCode);
 				break;
 			}
 
@@ -71,6 +84,8 @@ int bgMediaDecoderV3::OpenMedia(const char *url)
 			if (errCode != 0)
 			{
 				LOG(ERROR)<<"open audio decoder failed... errcode : "<<errCode;
+				std::string errstr = "open audio decoder failed...";
+				notifer_->ErrorNotify(errstr, errCode);
 				break;
 			}
 
@@ -82,6 +97,9 @@ int bgMediaDecoderV3::OpenMedia(const char *url)
 			if (!input_subtitle_codec_)
 			{
 				LOG(ERROR)<<"not find subtitle decoder...";
+				std::string errstr = "not find subtitle decoder...";
+				errCode = -4;
+				notifer_->ErrorNotify(errstr, errCode);
 				break;
 			}
 
@@ -89,6 +107,8 @@ int bgMediaDecoderV3::OpenMedia(const char *url)
 			if (errCode != 0)
 			{
 				LOG(ERROR)<<"open subtitle decoder failed... errcode : "<<errCode;
+				std::string errstr = "open subtitle decoder failed...";
+				notifer_->ErrorNotify(errstr, errCode);
 				break;
 			}
 
@@ -101,7 +121,7 @@ int bgMediaDecoderV3::OpenMedia(const char *url)
 	decode_thread_->Start();
 	decode_thread_->message_loop()->PostTask(FROM_HERE, base::Bind(&bgMediaDecoderV3::DecodeTask, this));
 
-	return errCode;
+	return 0;
 }
 
 void bgMediaDecoderV3::Close()
@@ -163,4 +183,6 @@ void bgMediaDecoderV3::DecodeTask(bgMediaDecoderV3 *decoder)
 		{
 		}
 	}
+
+	decoder->notifer_->StateNotify("decoder finished", 0);
 }

@@ -57,7 +57,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../build/$(Configuration)/lib;../ext/ffmpeg/lib/x86;../ext/SDL/lib/x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>base.lib;avcodec.lib;avdevice.lib;avfilter.lib;avformat.lib;avutil.lib;swscale.lib;SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;avcodec.lib;avdevice.lib;avfilter.lib;avformat.lib;avutil.lib;swscale.lib;bgMediaDecoder.lib;SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>COPY $(SolutionDir)ext\ffmpeg\bin\$(ProcessorArchitecture)\avcodec-57.dll $(OutDir)
@@ -91,16 +91,11 @@ COPY $(SolutionDir)ext\SDL\lib\$(ProcessorArchitecture)\SDL2.dll $(OutDir)</Comm
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cmdutils.h" />
-    <ClInclude Include="SDL2Player.h" />
-    <ClInclude Include="SDL2PlayerStructure.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cmdutils.cpp" />
     <ClCompile Include="SDL2ConsolePlayer.cpp" />
-    <ClCompile Include="SDL2Player.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

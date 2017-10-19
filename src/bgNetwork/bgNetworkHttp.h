@@ -81,8 +81,8 @@ public:
 //-----------------------------------------------------------------------------
 // use this class to test completely consuming a transaction
 class bgNetworkHttpTransactionClient
-	: public net::HttpTransaction
-	, public base::SupportsWeakPtr<bgNetworkHttpTransactionClient>
+	//: public net::HttpTransaction
+	//, public base::SupportsWeakPtr<bgNetworkHttpTransactionClient>
 {
 public:
 	bgNetworkHttpTransactionClient(net::RequestPriority priority, net::HttpTransactionFactory* factory);
@@ -124,7 +124,7 @@ private:
 	scoped_refptr<net::IOBuffer> read_buf_;
 	int error_;
 
-	static int quit_counter_;
+	int quit_counter_;
 };
 
 

@@ -6,11 +6,10 @@
 #include "base/at_exit.h"
 #include "base/command_line.h"
 #include "base/message_loop.h"
-#include "url/gurl.h"
 
-#include "../bgNetwork/bgNetworkHttp.h"
-#include "../bgNetwork/bgNetworkHttpCache.h"
+#include "ext/libcurl/include/curl/curl.h"
 
+#include <iostream>
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -24,7 +23,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	cmdline.Init(argc, nullptr);
 
 	// 接下来可以开展核心业务
-	bgHttpCache
+	
 
 	return 0;
 }
