@@ -19,7 +19,10 @@
 
 void ThreadWork_1()
 {
-	std::cout<<"This is ThreadWork_1()"<<std::endl;
+	for (int i = 0; i < 10; ++i)
+	{
+		std::cout<<"This is ThreadWork_1()"<<std::endl;
+	}
 }
 
 void ThreadWork_2(int index)
@@ -45,10 +48,10 @@ int _tmain(int argc, _TCHAR* argv[])
 	// 接下来可以开展核心业务
 
 	// 1. 跨平台的多线程
-	base::Thread _thread("thread_name");
-	_thread.Start();
-	_thread.message_loop()->PostTask(FROM_HERE, base::Bind(&ThreadWork_1));
-	_thread.message_loop()->PostTask(FROM_HERE, base::Bind(&ThreadWork_2, 10));
+	//base::Thread _thread("thread_name");
+	//_thread.Start();
+	//_thread.message_loop()->PostTask(FROM_HERE, base::Bind(&ThreadWork_1));
+	//_thread.message_loop()->PostTask(FROM_HERE, base::Bind(&ThreadWork_2, 10));
 
 	// 2. 跨平台的工作池
 	base::WorkerPool::PostTask(FROM_HERE, base::Bind(&ThreadWork_1), false);
@@ -56,6 +59,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	// 3. 跨平台的库加载,base::NativeLibrary
 
+	system("pause");
 	return 0;
 }
 

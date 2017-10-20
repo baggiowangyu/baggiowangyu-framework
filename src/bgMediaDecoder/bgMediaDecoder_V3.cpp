@@ -8,6 +8,7 @@
 bgMediaDecoderV3::bgMediaDecoderV3(bgMediaDecoderV3Notify *notifer)
 	: notifer_(notifer)
 	, decode_thread_(new base::Thread("bgMediaDecoderV3_decode_thread"))
+	, state_(StandBy)
 {
 
 }
@@ -23,6 +24,8 @@ bgMediaDecoderV3::~bgMediaDecoderV3()
 int bgMediaDecoderV3::OpenMedia(const char *url)
 {
 	int errCode = 0;
+	state_ = BeforeDecode;
+	notifer_->StateNotify("", state_);
 
 	av_register_all();
 	avformat_network_init();
@@ -34,6 +37,8 @@ int bgMediaDecoderV3::OpenMedia(const char *url)
 	errCode = avformat_open_input(&input_format_context_, url, nullptr, nullptr);
 	if (errCode != 0)
 	{
+		state_ = StandBy;
+		notifer_->StateNotify("", state_);
 		std::string errstr = "open input url failed ...";
 		notifer_->ErrorNotify(errstr, errCode);
 		return -1;
@@ -131,6 +136,9 @@ void bgMediaDecoderV3::Close()
 
 void bgMediaDecoderV3::DecodeTask(bgMediaDecoderV3 *decoder)
 {
+	decoder->state_ = Decoding;
+	decoder->notifer_->StateNotify("", decoder->state_);
+
 	bool is_notify_video_info = false;
 	bool is_notify_audio_info = false;
 	AVPacket packet;
@@ -158,11 +166,13 @@ void bgMediaDecoderV3::DecodeTask(bgMediaDecoderV3 *decoder)
 					video_info.qmin_ = decoder->input_video_codec_context_->qmin;
 					video_info.qmax_ = decoder->input_video_codec_context_->qmax;
 					video_info.max_b_frames_ = decoder->input_video_codec_context_->max_b_frames;
+					video_info.frame_rate_ = decoder->input_format_context_->streams[decoder->input_video_stream_index_]->r_frame_rate;
 
 					decoder->notifer_->VideoInfoNotify(video_info);
 					is_notify_video_info = true;
 				}
 				decoder->notifer_->DecodeNotify(frame, AVMEDIA_TYPE_VIDEO);
+				av_frame_free(&frame);
 			}
 		}
 		else if (packet.stream_index == decoder->input_audio_stream_index_)
@@ -184,5 +194,6 @@ void bgMediaDecoderV3::DecodeTask(bgMediaDecoderV3 *decoder)
 		}
 	}
 
-	decoder->notifer_->StateNotify("decoder finished", 0);
+	decoder->state_ = DecodeFinished;
+	decoder->notifer_->StateNotify("", decoder->state_);
 }

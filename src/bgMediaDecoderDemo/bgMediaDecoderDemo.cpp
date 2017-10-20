@@ -26,7 +26,7 @@ public:
 	~TestNotify(){}
 
 public:
-	virtual void StateNotify(std::string statestr, int stateindex)
+	virtual void StateNotify(std::string statestr, enum _Decoder_State_ stateindex)
 	{
 
 	}
@@ -67,7 +67,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	cmdline.Init(argc, nullptr);
 
 	// 接下来可以开展核心业务
-	char *url = "D:\\V21205-124737.avi";
+	char *url = "D:\\2.mp4";
 
 	TestNotify notifer;
 	bgMediaDecoderV3 decoder((bgMediaDecoderV3Notify*)&notifer);

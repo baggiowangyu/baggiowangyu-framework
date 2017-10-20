@@ -34,7 +34,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	SDL2Player player;
 	player.Play(url.c_str());
 
-	message_loop.Run();
+	//message_loop.Run();
 
 	return 0;
 }

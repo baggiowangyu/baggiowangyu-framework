@@ -31,6 +31,16 @@ extern "C" {
 
 #ifndef _Struct_MediaVideoInfo_
 #define _Struct_MediaVideoInfo_
+
+typedef enum _Decoder_State_
+{
+	StandBy,			// 就绪状态，可以调用OpenMedia解码媒体了
+	BeforeDecode,		// 解码前置状态，执行解码前的一些基础工作，包括媒体信息分析，查找解码器等
+	Decoding,			// 解码中，正在进行编码包解码
+	DecodeFinished,		// 解码结束，所有的编码包都已经被解码完成
+	DecodeError			// 解码出错，解码过程中出现了错误
+};
+
 typedef struct _MediaVideoInfo_
 {
 	AVPixelFormat pixel_format_;
@@ -42,13 +52,14 @@ typedef struct _MediaVideoInfo_
 	int qmin_;				// 
 	int qmax_;				// 
 	int max_b_frames_;		// 
+	AVRational frame_rate_;		// 
 } MediaVideoInfo, *PMediaVideoInfo;
 #endif
 
 class bgMediaDecoderV3Notify
 {
 public:
-	virtual void StateNotify(std::string statestr, int stateindex) = 0;
+	virtual void StateNotify(std::string statestr, enum _Decoder_State_ stateindex) = 0;
 	virtual void ErrorNotify(std::string errstr, int errcode) = 0;
 	virtual void DecodeNotify(AVFrame *frame_data, int frame_type) = 0;
 	virtual void VideoInfoNotify(MediaVideoInfo video_info) = 0;
@@ -87,6 +98,7 @@ public:
 	int input_audio_stream_index_;
 	int input_subtitle_stream_index_;
 
+	enum _Decoder_State_ state_;
 };
 
 #endif
