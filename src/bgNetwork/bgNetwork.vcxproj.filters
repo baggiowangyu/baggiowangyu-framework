@@ -13,11 +13,20 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Http">
+    <Filter Include="V1">
+      <UniqueIdentifier>{8e67d2e6-bad5-4d5d-aee1-c903f2a04b5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="V1\Callback">
+      <UniqueIdentifier>{56d917ea-d9ca-485d-af74-8c66b66dfd8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="V1\Http">
       <UniqueIdentifier>{2a906bd9-3ca7-496b-823e-13bcfeeca8e8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Callback">
-      <UniqueIdentifier>{56d917ea-d9ca-485d-af74-8c66b66dfd8a}</UniqueIdentifier>
+    <Filter Include="V2">
+      <UniqueIdentifier>{e2e5e2d7-31a4-4298-a383-b83c6672f325}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="V3">
+      <UniqueIdentifier>{50f2318d-0559-4df1-890c-1f1d0485acf2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -31,13 +40,19 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="bgNetworkHttp.h">
-      <Filter>Http</Filter>
+      <Filter>V1\Http</Filter>
     </ClInclude>
     <ClInclude Include="bgNetworkHttpCache.h">
-      <Filter>Http</Filter>
+      <Filter>V1\Http</Filter>
     </ClInclude>
     <ClInclude Include="bgCompletionCallback.h">
-      <Filter>Callback</Filter>
+      <Filter>V1\Callback</Filter>
+    </ClInclude>
+    <ClInclude Include="bgNetworkHttp_V2.h">
+      <Filter>V2</Filter>
+    </ClInclude>
+    <ClInclude Include="bgNetworkHttp_V3.h">
+      <Filter>V3</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -45,13 +60,19 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="bgNetworkHttp.cpp">
-      <Filter>Http</Filter>
+      <Filter>V1\Http</Filter>
     </ClCompile>
     <ClCompile Include="bgNetworkHttpCache.cpp">
-      <Filter>Http</Filter>
+      <Filter>V1\Http</Filter>
     </ClCompile>
     <ClCompile Include="bgCompletionCallback.cpp">
-      <Filter>Callback</Filter>
+      <Filter>V1\Callback</Filter>
+    </ClCompile>
+    <ClCompile Include="bgNetworkHttp_V2.cpp">
+      <Filter>V2</Filter>
+    </ClCompile>
+    <ClCompile Include="bgNetworkHttp_V3.cpp">
+      <Filter>V3</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

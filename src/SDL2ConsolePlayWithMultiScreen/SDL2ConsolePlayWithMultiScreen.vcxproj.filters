@@ -13,8 +13,8 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Info">
-      <UniqueIdentifier>{82e07f90-731b-4bd2-82ec-eab092e33dae}</UniqueIdentifier>
+    <Filter Include="SDL2PlayerEx">
+      <UniqueIdentifier>{5e4c032c-ce50-48fa-9a8e-802989032b60}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -27,13 +27,19 @@
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="LiveInfo.h">
-      <Filter>Info</Filter>
+    <ClInclude Include="SDL2PlayerEx.h">
+      <Filter>SDL2PlayerEx</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SDL2ConsolePlayWithMultiScreen.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SDL2PlayerEx.cpp">
+      <Filter>SDL2PlayerEx</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

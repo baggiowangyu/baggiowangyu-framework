@@ -9,6 +9,9 @@
 
 #include <iostream>
 
+#define sub_screen_width	100
+#define sub_screen_height	100
+
 SDL2Player::SDL2Player()
 	: screen_width_(848)
 	, screen_height_(640)
@@ -87,15 +90,16 @@ int SDL2Player::Play(const char *url)
 	if (errCode != 0)
 		return errCode;
 
+	// 这里需要注意一下，在创建渲染的时候必须跟窗口大小相同，不然会悲剧
 	sdl_window_ = SDL_CreateWindow("123", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screen_width_, screen_height_, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
 	sdl_renderer_ = SDL_CreateRenderer(sdl_window_, -1, 0);
 	sdl_texture_ = SDL_CreateTexture(sdl_renderer_, SDL_PIXELFORMAT_IYUV, SDL_TEXTUREACCESS_STREAMING, screen_width_, screen_height_);
 
+	// 这里用于给实际窗口展示用的矩形区域
 	sub_screen_rect_.x = 0;
 	sub_screen_rect_.y = 0;
-	sub_screen_rect_.w = screen_width_;
-	sub_screen_rect_.h = screen_height_;
-
+	sub_screen_rect_.w = sub_screen_width;
+	sub_screen_rect_.h = sub_screen_height;
 
 	// 开始解码
 	errCode = decoder_v3_->OpenMedia(url);
@@ -110,6 +114,8 @@ int SDL2Player::Play(const char *url)
 	frame_ = av_frame_alloc();
 	frame_yuv_ = av_frame_alloc();
 	out_buffer_ = (unsigned char *)av_malloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P,  screen_width_, screen_height_, 1));
+
+	// 注意，这里填充的时候，后面的width和height是表示横坐标和纵坐标上的像素值
 	av_image_fill_arrays(frame_yuv_->data, frame_yuv_->linesize, out_buffer_, AV_PIX_FMT_YUV420P, screen_width_, screen_height_, 1);
 
 	img_convert_ctx_ = sws_getContext(media_video_info_.codec_width_, media_video_info_.codec_height_,
@@ -167,7 +173,7 @@ void SDL2Player::MainWorkingTask(SDL2Player *player)
 				// SDL渲染纹理
 				SDL_UpdateTexture(player->sdl_texture_, nullptr, player->frame_yuv_->data[0], player->frame_yuv_->linesize[0]);
 				SDL_RenderClear(player->sdl_renderer_);
-				SDL_RenderCopy(player->sdl_renderer_, player->sdl_texture_, nullptr, nullptr);
+				SDL_RenderCopy(player->sdl_renderer_, player->sdl_texture_, nullptr, &player->sub_screen_rect_);
 				SDL_RenderPresent(player->sdl_renderer_);
 				// 渲染结束
 

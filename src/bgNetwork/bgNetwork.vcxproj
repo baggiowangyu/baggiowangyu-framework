@@ -77,6 +77,8 @@
     <ClInclude Include="bgCompletionCallback.h" />
     <ClInclude Include="bgNetworkHttp.h" />
     <ClInclude Include="bgNetworkHttpCache.h" />
+    <ClInclude Include="bgNetworkHttp_V2.h" />
+    <ClInclude Include="bgNetworkHttp_V3.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -84,6 +86,8 @@
     <ClCompile Include="bgCompletionCallback.cpp" />
     <ClCompile Include="bgNetworkHttp.cpp" />
     <ClCompile Include="bgNetworkHttpCache.cpp" />
+    <ClCompile Include="bgNetworkHttp_V2.cpp" />
+    <ClCompile Include="bgNetworkHttp_V3.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
