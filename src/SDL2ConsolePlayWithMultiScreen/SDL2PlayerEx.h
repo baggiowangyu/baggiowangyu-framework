@@ -2,6 +2,7 @@
 #define _SDL2PLAYEREX_H_
 
 #include "base/containers/linked_list.h"
+#include "base/threading/thread.h"
 
 #include "bgMediaDecoder/bgMediaDecoder_V3.h"
 #include "ext/SDL/include/SDL.h"
@@ -13,6 +14,20 @@ typedef enum SUBSCREEN_TYPE
 	SubScreen_Eight,
 	SubScreen_Nine,
 	SubScreen_Sixteen
+};
+
+typedef enum SUBSCREEN_WORKING_STATE
+{
+	SubScreen_Free,				// 空闲状态，播放完成后也进入空闲状态
+	SubScreen_Playing,			// 播放状态，播放器正在渲染播放视频
+	SubScreen_Pausing,			// 暂停状态，播放器暂停渲染播放
+	SubScreen_PerFramePlaying	// 逐帧播放，播放器整处于逐帧播放状态
+};
+
+typedef enum SUBSCREEN_EVENT_TYPE
+{
+	SubScreen_Refresh,
+	SubScreen_
 };
 
 
@@ -62,8 +77,16 @@ public:
 	virtual void AudioInfoNotify();
 
 public:
-	int Init(SDL_Renderer *renderer);
+	int Init(int player_screen_width, int player_screen_height, SDL_Renderer *renderer);
+	void Close();
+
 	int Play(const char *url);
+	int Pause();
+	int Resume();
+	int Stop();
+
+public:
+	enum SUBSCREEN_WORKING_STATE GetWorkingState();
 
 public:
 	static void MainWorkingTask(SDL2PlayerSubScreen *sub_screen);
@@ -73,10 +96,15 @@ public:
 	MediaVideoInfo media_video_info_;
 
 public:
-	SDL_Renderer *sdl_renderer_;			// 播放器渲染器
+	int player_screen_width_;		// 播放器窗口宽度，从主窗口传递下来
+	int player_screen_height_;		// 播放器窗口高度，从主窗口传递下来
+	SDL_Renderer *sdl_renderer_;	// 播放器渲染器
 	SDL_Texture *sdl_texture_;		// 播放器纹理（可以理解为分屏）
 	SDL_Rect sub_screen_rect_;		// 分屏区域
+	SDL_Event sub_screen_event_;	// 分屏事件，用于控制分屏
 	SDL_Thread *sdl_refresh_thread_;
+	//base::WaitableEvent sub_screen_event_;
+
 	int thread_exit_;
 
 public:
@@ -93,8 +121,10 @@ public:
 	base::LinkedList<FrameNode> audio_list_;	// 音频帧链表
 
 public:
+	base::Thread *main_working_thread_;
 	bgMediaDecoderV3 *decoder_v3_;	// 视音频解码器
 	enum _Decoder_State_ decoder_state_;
+	enum SUBSCREEN_WORKING_STATE player_working_state_;
 };
 
 
