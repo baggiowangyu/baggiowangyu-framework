@@ -10,6 +10,8 @@
 #include "SDL2PlayerEx.h"
 #include <iostream>
 
+#define SUB_SCREEN_TYPE		SubScreen_Four
+
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -35,9 +37,17 @@ int _tmain(int argc, _TCHAR* argv[])
 	// 这里先测试单屏播放，如果单屏播放没问题的话开始测试4屏播放
 
 	SDL2PlayerEx player;
-	int errCode = player.Init();
+	int errCode = player.Init(800, 600, SUB_SCREEN_TYPE);
 
-	errCode = player.PlayOnSubScreen(url.c_str());
+	// 实测发现多屏播放时，闪屏特别厉害，并且播放时间也没有保障
+	// 0号索引其他位置都会出现渲染画面不全的情况
+
+	for (int index = 0; index < (int)SUB_SCREEN_TYPE; ++index)
+	{
+		char path[4096] = {0};
+		sprintf_s(path, 4096, "D:\\test\\%d.mp4", index);
+		errCode = player.PlayOnSubScreen(path);
+	}
 
 	message_loop.Run();
 

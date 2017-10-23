@@ -2,6 +2,7 @@
 #define _SDL2PLAYEREX_H_
 
 #include "base/containers/linked_list.h"
+#include "base/synchronization/waitable_event.h"
 #include "base/threading/thread.h"
 
 #include "bgMediaDecoder/bgMediaDecoder_V3.h"
@@ -9,11 +10,11 @@
 
 typedef enum SUBSCREEN_TYPE
 {
-	SubScreen_One,
-	SubScreen_Four,
-	SubScreen_Eight,
-	SubScreen_Nine,
-	SubScreen_Sixteen
+	SubScreen_One		= 1,
+	SubScreen_Four		= 4,
+	SubScreen_Eight		= 8,
+	SubScreen_Nine		= 9,
+	SubScreen_Sixteen	= 16
 };
 
 typedef enum SUBSCREEN_WORKING_STATE
@@ -27,7 +28,7 @@ typedef enum SUBSCREEN_WORKING_STATE
 typedef enum SUBSCREEN_EVENT_TYPE
 {
 	SubScreen_Refresh,
-	SubScreen_
+	SubScreen_Break
 };
 
 
@@ -54,6 +55,7 @@ public:
 
 // -----------------------------------------------------------------------------------
 // 子窗口类，是播放视音频的实体，负责视音频解码、帧图像压缩转换等工作
+// 关于子窗口类的事件，我们可以设置除了一个子窗口之外，多子窗口环境下不处理任何内部消息
 class SDL2PlayerSubScreen : public bgMediaDecoderV3Notify
 {
 public:
@@ -77,7 +79,7 @@ public:
 	virtual void AudioInfoNotify();
 
 public:
-	int Init(int player_screen_width, int player_screen_height, SDL_Renderer *renderer);
+	int Init(int player_screen_width, int player_screen_height, SDL_Window *window, SDL_Renderer *renderer, int current_index);
 	void Close();
 
 	int Play(const char *url);
@@ -89,21 +91,31 @@ public:
 	enum SUBSCREEN_WORKING_STATE GetWorkingState();
 
 public:
-	static void MainWorkingTask(SDL2PlayerSubScreen *sub_screen);
-	static void refresh_video(void *opaque);
+	static void SubScreenRefreshTask(SDL2PlayerSubScreen *sub_screen);
+	static void SubScreenControlTask(SDL2PlayerSubScreen *sub_screen);
+	static void SubScreenRefreshControlTask(SDL2PlayerSubScreen *sub_screen);
+	//static void refresh_video(void *opaque);
 
 public:
 	MediaVideoInfo media_video_info_;
 
 public:
-	int player_screen_width_;		// 播放器窗口宽度，从主窗口传递下来
-	int player_screen_height_;		// 播放器窗口高度，从主窗口传递下来
-	SDL_Renderer *sdl_renderer_;	// 播放器渲染器
-	SDL_Texture *sdl_texture_;		// 播放器纹理（可以理解为分屏）
-	SDL_Rect sub_screen_rect_;		// 分屏区域
-	SDL_Event sub_screen_event_;	// 分屏事件，用于控制分屏
-	SDL_Thread *sdl_refresh_thread_;
-	//base::WaitableEvent sub_screen_event_;
+	int player_screen_width_;					// 播放器窗口宽度，从主窗口传递下来
+	int player_screen_height_;					// 播放器窗口高度，从主窗口传递下来
+
+	SDL_Window *sdl_window_;
+	SDL_Renderer *sdl_renderer_;				// 播放器渲染器
+	SDL_Texture *sdl_texture_;					// 播放器纹理（可以理解为分屏）
+	SDL_Rect sub_screen_rect_;					// 分屏区域
+	
+	base::Thread *sdl_refresh_thread_;			// 分屏画面刷新线程
+	base::Thread *sdl_refresh_control_thread_;	// 分屏画面刷新线程
+	base::Thread *sdl_control_thread_;			// 分屏SDL事件处理线程
+	base::WaitableEvent *play_event_;			// 
+	enum SUBSCREEN_EVENT_TYPE play_event_type_;
+
+	base::WaitableEvent *video_info_notify_event_;
+	base::WaitableEvent *audio_info_notify_event_;
 
 	int thread_exit_;
 
@@ -112,8 +124,7 @@ public:
 	AVFrame *frame_yuv_;			// YUV视频帧
 	unsigned char *out_buffer_;		// 视频图像缓冲区
 	SwsContext *img_convert_ctx_;	// 图像转换上下文
-
-	int frame_rate_;
+	int frame_rate_;				// 帧率：帧/秒
 
 public:
 	// 帧链表
@@ -121,10 +132,13 @@ public:
 	base::LinkedList<FrameNode> audio_list_;	// 音频帧链表
 
 public:
-	base::Thread *main_working_thread_;
+	//base::Thread *main_working_thread_;
 	bgMediaDecoderV3 *decoder_v3_;	// 视音频解码器
 	enum _Decoder_State_ decoder_state_;
-	enum SUBSCREEN_WORKING_STATE player_working_state_;
+	enum SUBSCREEN_WORKING_STATE sub_screen_working_state_;
+
+public:
+	int current_index_;
 };
 
 
@@ -157,7 +171,7 @@ public:
 	SDL_Window *sdl_window_;				// 播放器窗口
 	SDL_Renderer *sdl_renderer_;			// 播放器渲染器
 
-	int sub_screen_count_;
+	int sub_screen_count_;					// 分屏数量，不能大于64
 	SDL2PlayerSubScreen sub_screens_[64];	// 分屏对象，最大支持64个分屏
 };
 

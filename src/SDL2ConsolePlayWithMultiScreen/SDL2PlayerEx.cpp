@@ -3,6 +3,7 @@
 #include "base/bind.h"
 #include "base/location.h"
 #include "base/synchronization/waitable_event.h"
+#include "base/rand_util.h"
 
 #include "SDL2PlayerEx.h"
 
@@ -13,16 +14,28 @@
 #define BREAK_EVENT		(SDL_USEREVENT + 2)
 
 SDL2PlayerSubScreen::SDL2PlayerSubScreen()
-	: sdl_texture_(nullptr)
+	: player_screen_width_(800)
+	, player_screen_height_(600)
+	, sdl_window_(nullptr)
+	, sdl_renderer_(nullptr)
+	, sdl_texture_(nullptr)
 	, sdl_refresh_thread_(nullptr)
+	, sdl_refresh_control_thread_(nullptr)
+	, sdl_control_thread_(nullptr)
+	, play_event_(new base::WaitableEvent(false, false))
+	, play_event_type_(SubScreen_Refresh)
+	, thread_exit_(0)
 	, frame_(nullptr)
 	, frame_yuv_(nullptr)
 	, out_buffer_(nullptr)
 	, img_convert_ctx_(nullptr)
+	, frame_rate_(25)
 	, decoder_v3_(new bgMediaDecoderV3(this))
-	, main_working_thread_(nullptr)
 	, decoder_state_(StandBy)
-	, player_working_state_(SubScreen_Free)
+	, sub_screen_working_state_(SubScreen_Free)
+	, current_index_(-1)
+	, video_info_notify_event_(new base::WaitableEvent(false, false))
+	, audio_info_notify_event_(new base::WaitableEvent(false, false))
 {
 
 }
@@ -79,6 +92,8 @@ void SDL2PlayerSubScreen::VideoInfoNotify(MediaVideoInfo video_info)
 	std::cout<<"max_b_frames_ : "<<video_info.max_b_frames_<<std::endl;
 
 	media_video_info_ = video_info;
+
+	video_info_notify_event_->Signal();
 }
 
 void SDL2PlayerSubScreen::AudioInfoNotify()
@@ -86,7 +101,7 @@ void SDL2PlayerSubScreen::AudioInfoNotify()
 
 }
 
-int SDL2PlayerSubScreen::Init(int player_screen_width, int player_screen_height, SDL_Renderer *renderer)
+int SDL2PlayerSubScreen::Init(int player_screen_width, int player_screen_height, SDL_Window *window, SDL_Renderer *renderer, int current_index)
 {
 	int errCode = 0;
 
@@ -96,7 +111,25 @@ int SDL2PlayerSubScreen::Init(int player_screen_width, int player_screen_height,
 
 	player_screen_width_ = player_screen_width;
 	player_screen_height_ = player_screen_height;
+
+	sdl_window_ = window;
 	sdl_renderer_ = renderer;
+	
+	current_index_ = current_index;
+
+	// 根据索引，构建线程名，创建各个线程
+	char thread_name[4096] = {0};
+	base::snprintf(thread_name, 4096, "sdl_refresh_thread_%d", current_index_);
+	sdl_refresh_thread_ = new base::Thread(thread_name);
+	sdl_refresh_thread_->Start();
+
+	base::snprintf(thread_name, 4096, "sdl_refresh_control_thread_%d", current_index_);
+	sdl_refresh_control_thread_ = new base::Thread(thread_name);
+	sdl_refresh_control_thread_->Start();
+
+	base::snprintf(thread_name, 4096, "sdl_control_thread_%d", current_index_);
+	sdl_control_thread_ = new base::Thread(thread_name);
+	sdl_control_thread_->Start();
 
 	return errCode;
 }
@@ -110,11 +143,6 @@ int SDL2PlayerSubScreen::Play(const char *url)
 {
 	int errCode = 0;
 
-	//// 初始化播放环境
-	//errCode = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
-	//if (errCode != 0)
-	//	return errCode;
-
 	sdl_texture_ = SDL_CreateTexture(sdl_renderer_, SDL_PIXELFORMAT_IYUV, SDL_TEXTUREACCESS_STREAMING, player_screen_width_, player_screen_height_);
 
 	// 开始解码
@@ -122,24 +150,33 @@ int SDL2PlayerSubScreen::Play(const char *url)
 	if (errCode != 0)
 		return errCode;
 
-	// 等待1秒钟
-	base::TimeDelta time_delta = base::TimeDelta::FromSeconds(1);
-	base::WaitableEvent wait_event(false, false);
-	wait_event.TimedWait(time_delta);
+	//// 等待1秒钟
+	//base::TimeDelta time_delta = base::TimeDelta::FromMicroseconds(1000);
+	//base::WaitableEvent wait_event(false, false);
+	//wait_event.TimedWait(time_delta);
 
 	frame_ = av_frame_alloc();
 	frame_yuv_ = av_frame_alloc();
 	out_buffer_ = (unsigned char *)av_malloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P,  player_screen_width_, player_screen_height_, 1));
 	av_image_fill_arrays(frame_yuv_->data, frame_yuv_->linesize, out_buffer_, AV_PIX_FMT_YUV420P, player_screen_width_, player_screen_height_, 1);
 
+
+	// 在此之前要等第一波解码完成，否则会出问题
+	video_info_notify_event_->Wait();
 	img_convert_ctx_ = sws_getContext(media_video_info_.codec_width_, media_video_info_.codec_height_,
 		media_video_info_.pixel_format_, player_screen_width_, player_screen_height_, media_video_info_.pixel_format_,
 		SWS_BICUBIC, nullptr, nullptr, nullptr);
 
-	// 这里启动线程
-	main_working_thread_->Start();
-	main_working_thread_->message_loop()->PostTask(FROM_HERE, base::Bind(&SDL2PlayerSubScreen::MainWorkingTask, this));
+	// 这里启动线程，分别用于处理SDL的内部消息和我们用于控制播放的自定义消息
+	sdl_refresh_thread_->message_loop()->PostTask(FROM_HERE, base::Bind(&SDL2PlayerSubScreen::SubScreenRefreshTask, this));
 
+	base::TimeDelta time_delta = base::TimeDelta::FromMicroseconds(100);
+	base::WaitableEvent wait_event(false, false);
+	wait_event.TimedWait(time_delta);
+
+	sdl_control_thread_->message_loop()->PostTask(FROM_HERE, base::Bind(&SDL2PlayerSubScreen::SubScreenControlTask, this));
+	wait_event.TimedWait(time_delta);
+	
 	// 这里，将播放线程调整到主线程，这样就可以接受窗口消息，改变播放窗口的尺寸了
 	//MainWorkingTask(this);
 
@@ -175,31 +212,45 @@ int SDL2PlayerSubScreen::Stop()
 	return errCode;
 }
 
-void SDL2PlayerSubScreen::MainWorkingTask(SDL2PlayerSubScreen *sub_screen)
+enum SUBSCREEN_WORKING_STATE SDL2PlayerSubScreen::GetWorkingState()
 {
-	sub_screen->sdl_refresh_thread_ = SDL_CreateThread(SDL2Player::refresh_video, nullptr, player);
+	return sub_screen_working_state_;
+}
+
+void SDL2PlayerSubScreen::SubScreenRefreshTask(SDL2PlayerSubScreen *sub_screen)
+{
+	// 启动按帧率刷新控制线程
+	sub_screen->sdl_refresh_control_thread_->message_loop()->PostTask(FROM_HERE, base::Bind(&SDL2PlayerSubScreen::SubScreenRefreshControlTask, sub_screen));
+
+	base::TimeDelta time_delta = base::TimeDelta::FromMicroseconds(100);
+	base::WaitableEvent wait_event(false, false);
+	wait_event.TimedWait(time_delta);
+	
+	// 这里启动
 
 	bool is_stopped = false;
 	while (true)
 	{
-		SDL_WaitEvent(&sub_screen->sub_screen_event_);
+		sub_screen->play_event_->Wait();
 
-		switch (sub_screen->sub_screen_event_.type)
+		switch (sub_screen->play_event_type_)
 		{
-		case REFRESH_EVENT:
+		case SubScreen_Refresh:
 			{
+				sub_screen->sub_screen_working_state_ = SubScreen_Playing;
+
 				// 这里需要检查解码器的工作状态，就绪....准备解码....解码中....解码结束....
 				// 如果真队列为空，只要解码器状态不是就绪或者解码结束，那么我们就直接跳出，如果是，则标记为结束
-				if ((player->video_list_.head() == player->video_list_.end()) && (player->video_list_.tail() == player->video_list_.end()))
+				if ((sub_screen->video_list_.head() == sub_screen->video_list_.end()) && (sub_screen->video_list_.tail() == sub_screen->video_list_.end()))
 				{
-					if ((player->decoder_state_ == StandBy) || (player->decoder_state_ == DecodeFinished) || (player->decoder_state_ == DecodeError))
-						player->thread_exit_ = 1;
+					if ((sub_screen->decoder_state_ == StandBy) || (sub_screen->decoder_state_ == DecodeFinished) || (sub_screen->decoder_state_ == DecodeError))
+						sub_screen->thread_exit_ = 1;
 
 					break;
 				}
 
 				// 从视频帧链表中取出一帧，转换图像后渲染显示
-				base::LinkNode<FrameNode> *node = player->video_list_.head();
+				base::LinkNode<FrameNode> *node = sub_screen->video_list_.head();
 				FrameNode *frame_node = node->value();
 
 				AVFrame *current_frame = frame_node->frame_;
@@ -209,14 +260,14 @@ void SDL2PlayerSubScreen::MainWorkingTask(SDL2PlayerSubScreen *sub_screen)
 				//player->video_list_2_.pop();
 
 				// 转换图像，图像转换结果总是最后两帧？
-				sws_scale(player->img_convert_ctx_, (const unsigned char * const*)current_frame->data, current_frame->linesize, 
-					0, current_frame->height, player->frame_yuv_->data, player->frame_yuv_->linesize);
+				sws_scale(sub_screen->img_convert_ctx_, (const unsigned char * const*)current_frame->data, current_frame->linesize, 
+					0, current_frame->height, sub_screen->frame_yuv_->data, sub_screen->frame_yuv_->linesize);
 
 				// SDL渲染纹理
-				SDL_UpdateTexture(player->sdl_texture_, nullptr, player->frame_yuv_->data[0], player->frame_yuv_->linesize[0]);
-				SDL_RenderClear(player->sdl_renderer_);
-				SDL_RenderCopy(player->sdl_renderer_, player->sdl_texture_, nullptr, &player->sub_screen_rect_);
-				SDL_RenderPresent(player->sdl_renderer_);
+				SDL_UpdateTexture(sub_screen->sdl_texture_, nullptr, sub_screen->frame_yuv_->data[0], sub_screen->frame_yuv_->linesize[0]);
+				SDL_RenderClear(sub_screen->sdl_renderer_);
+				SDL_RenderCopy(sub_screen->sdl_renderer_, sub_screen->sdl_texture_, nullptr, &sub_screen->sub_screen_rect_);
+				SDL_RenderPresent(sub_screen->sdl_renderer_);
 				// 渲染结束
 
 				// 释放掉当前使用过的帧节点
@@ -224,26 +275,17 @@ void SDL2PlayerSubScreen::MainWorkingTask(SDL2PlayerSubScreen *sub_screen)
 
 				break;
 			}
-		case BREAK_EVENT:
+		case SubScreen_Break:
 			{
 				is_stopped = true;
-				break;
-			}
-		case SDL_WINDOWEVENT:
-			{
-				SDL_GetWindowSize(player->sdl_window_, &player->screen_width_, &player->screen_height_);
-				break;
-			}
-		case SDL_QUIT:
-			{
-				player->thread_exit_ = 1;
 				break;
 			}
 		}
 
 		if (is_stopped)
 		{
-			SDL_Quit();
+			sub_screen->sub_screen_working_state_ = SubScreen_Free;
+			//SDL_Quit();
 			break;
 		}
 	}
@@ -251,32 +293,57 @@ void SDL2PlayerSubScreen::MainWorkingTask(SDL2PlayerSubScreen *sub_screen)
 	// 播放完成，后续应该干些什么，后面有需要再加吧
 }
 
-void SDL2PlayerSubScreen::refresh_video(void *opaque)
+void SDL2PlayerSubScreen::SubScreenControlTask(SDL2PlayerSubScreen *sub_screen)
 {
-	SDL2PlayerSubScreen *player = (SDL2PlayerSubScreen *)opaque;
-	player->thread_exit_ = 0;
+	SDL_Event event;
+	bool is_stopped = false;
+	while (true)
+	{
+		SDL_WaitEvent(&event);
 
-	// 计算帧率
-	int delay_count = 1000 / (player->media_video_info_.frame_rate_.num / player->media_video_info_.frame_rate_.den);
+		switch (event.type)
+		{
+		case SDL_WINDOWEVENT:
+			{
+				SDL_GetWindowSize(sub_screen->sdl_window_, &sub_screen->player_screen_width_, &sub_screen->player_screen_height_);
+				break;
+			}
+		case SDL_QUIT:
+			{
+				sub_screen->thread_exit_ = 1;
+				break;
+			}
+		}
+	}
+}
 
-	while (!player->thread_exit_)
+void SDL2PlayerSubScreen::SubScreenRefreshControlTask(SDL2PlayerSubScreen *sub_screen)
+{
+	sub_screen->thread_exit_ = 0;
+
+	// 计算帧，帧率的计算方法跟time_base有关，这里一定要注意，不然会出大问题
+	int delay_count = 1000 / (sub_screen->media_video_info_.frame_rate_.num / sub_screen->media_video_info_.frame_rate_.den);
+
+	while (!sub_screen->thread_exit_)
 	{
 		// 由于这里采用了同一个消息通道，不同的线程向各自的子窗口发送事件
-		SDL_Event event;
-		event.type = REFRESH_EVENT;
-		SDL_PushEvent(&event);
+		sub_screen->play_event_type_ = SubScreen_Refresh;
+		sub_screen->play_event_->Signal();
 
 		// 这里应当按照帧率发送
 		// 我们在这里默认使用40ms等待，其实就是1000ms / 40ms = 25帧
 		// 即当前我们将帧率固定在25
-		SDL_Delay(delay_count);
+		base::TimeDelta wait_time = base::TimeDelta::FromMilliseconds(40);
+		base::WaitableEvent delay_event(false, false);
+		delay_event.TimedWait(wait_time);
+
+		//SDL_Delay(40);
 	}
 
-	player->thread_exit_ = 0;
+	sub_screen->thread_exit_ = 0;
 
-	SDL_Event event;
-	event.type = BREAK_EVENT;
-	SDL_PushEvent(&event);
+	sub_screen->play_event_type_ = SubScreen_Break;
+	sub_screen->play_event_->Signal();
 }
 
 // -----------------------------------------------------------------------------------------
@@ -302,6 +369,23 @@ int SDL2PlayerEx::Init(int width /* = 800 */, int height /* = 600 */, enum SUBSC
 
 	screen_width_ = width;
 	screen_height_ = height;
+
+	// 初始化播放环境
+	errCode = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
+	if (errCode != 0)
+		return errCode;
+
+	sdl_window_ = SDL_CreateWindow("SDL2PlayerEx", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screen_width_, screen_height_, SDL_WINDOW_OPENGL);
+	if (!sdl_window_)
+	{
+		return -1;
+	}
+
+	sdl_renderer_ = SDL_CreateRenderer(sdl_window_, -1, 0);
+	if (!sdl_renderer_)
+	{
+		return -2;
+	}
 	
 	switch (type)
 	{
@@ -334,7 +418,7 @@ int SDL2PlayerEx::Init(int width /* = 800 */, int height /* = 600 */, enum SUBSC
 		sub_screens_[0].sub_screen_rect_.w = screen_width_;
 		sub_screens_[0].sub_screen_rect_.h = screen_height_;
 
-		sub_screens_[0].Init(sdl_renderer_);
+		sub_screens_[0].Init(screen_width_, screen_height_, sdl_window_, sdl_renderer_, 0);
 	}
 	else if (sub_screen_count_ == 8)
 	{
@@ -350,19 +434,30 @@ int SDL2PlayerEx::Init(int width /* = 800 */, int height /* = 600 */, enum SUBSC
 		int unit_width = screen_width_ / count;
 		int unit_height = screen_height_ / count;
 
-		for (int index = 0; index < sub_screen_count_; ++index)
+		int sub_screen_index = 0;
+		int y_index = 0;
+		while (true)
 		{
-			int y_index = 0;
+			if (sub_screen_index == sub_screen_count_)
+				break;
+			
 			for (int x_index = 0; x_index < count; ++x_index)
 			{
-				// 根据自己的索引计算矩形区域
-				sub_screens_[index].sub_screen_rect_.x = (x_index + 1) * unit_width;
-				sub_screens_[index].sub_screen_rect_.y = y_index * unit_height;
-				sub_screens_[index].sub_screen_rect_.w = (x_index + 1) * unit_width;
-				sub_screens_[index].sub_screen_rect_.h = (y_index + 1) * unit_height;
+				// 根据自己的索引计算矩形区域，坐标计算出错
+				sub_screens_[sub_screen_index].sub_screen_rect_.x = x_index * unit_width;
+				sub_screens_[sub_screen_index].sub_screen_rect_.y = y_index * unit_height;
+				sub_screens_[sub_screen_index].sub_screen_rect_.w = (x_index + 1) * unit_width;
+				sub_screens_[sub_screen_index].sub_screen_rect_.h = (y_index + 1) * unit_height;
 
-				sub_screens_[index].Init(sdl_renderer_);
+				std::cout<<"sub_screen_"<<sub_screen_index<<" position : ("<<
+					sub_screens_[sub_screen_index].sub_screen_rect_.x<<", "<<sub_screens_[sub_screen_index].sub_screen_rect_.y<<", "<<
+					sub_screens_[sub_screen_index].sub_screen_rect_.w<<", "<<sub_screens_[sub_screen_index].sub_screen_rect_.h<<")"<<std::endl;
+
+				sub_screens_[sub_screen_index].Init(screen_width_, screen_height_, sdl_window_, sdl_renderer_, sub_screen_index);
+				++sub_screen_index;
 			}
+
+			++y_index;
 		}
 	}
 
