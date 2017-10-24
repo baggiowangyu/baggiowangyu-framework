@@ -98,6 +98,7 @@ public:
 
 public:
 	MediaVideoInfo media_video_info_;
+	MediaAudioInfo media_audio_info_;
 
 public:
 	int player_screen_width_;					// 播放器窗口宽度，从主窗口传递下来

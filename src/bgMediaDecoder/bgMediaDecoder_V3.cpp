@@ -9,6 +9,15 @@
 bgMediaDecoderV3::bgMediaDecoderV3(bgMediaDecoderV3Notify *notifer)
 	: notifer_(notifer)
 	, decode_thread_(new base::Thread(base::RandBytesAsString(8).c_str()))
+	, input_video_codec_context_(nullptr)
+	, input_audio_codec_context_(nullptr)
+	, input_subtitle_codec_context_(nullptr)
+	, input_video_codec_(nullptr)
+	, input_audio_codec_(nullptr)
+	, input_subtitle_codec_(nullptr)
+	, input_video_stream_index_(-1)
+	, input_audio_stream_index_(-1)
+	, input_subtitle_stream_index_(-1)
 	, state_(StandBy)
 {
 
@@ -182,7 +191,24 @@ void bgMediaDecoderV3::DecodeTask(bgMediaDecoderV3 *decoder)
 			int got_sound = 0;
 			avcodec_decode_audio4(decoder->input_audio_codec_context_, frame, &got_sound, &packet);
 
-			decoder->notifer_->DecodeNotify(frame, AVMEDIA_TYPE_AUDIO);
+			if (got_sound)
+			{
+				if (!is_notify_audio_info)
+				{
+					MediaAudioInfo audio_info;
+					audio_info.bit_rate_ = decoder->input_audio_codec_context_->bit_rate;
+					audio_info.sample_rate_ = decoder->input_audio_codec_context_->sample_rate;
+					audio_info.channels_ = decoder->input_audio_codec_context_->channels;
+					audio_info.frame_size_ = decoder->input_audio_codec_context_->frame_size;
+					audio_info.out_channels_ = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_STEREO);	// Á¢ÌåÉù
+
+					decoder->notifer_->AudioInfoNotify(audio_info);
+					is_notify_audio_info = true;
+				}
+
+				decoder->notifer_->DecodeNotify(frame, AVMEDIA_TYPE_AUDIO);
+				av_frame_free(&frame);
+			}
 		}
 		//else if (packet.stream_index == decoder->input_subtitle_stream_index_)
 		//{

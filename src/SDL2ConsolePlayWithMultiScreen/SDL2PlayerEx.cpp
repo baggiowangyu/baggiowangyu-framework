@@ -98,7 +98,15 @@ void SDL2PlayerSubScreen::VideoInfoNotify(MediaVideoInfo video_info)
 
 void SDL2PlayerSubScreen::AudioInfoNotify(MediaAudioInfo audio_info)
 {
+	std::cout<<"sample_rate : "<<audio_info.sample_rate_<<std::endl;
+	std::cout<<"bit_rate : "<<audio_info.bit_rate_<<std::endl;
+	std::cout<<"channels : "<<audio_info.channels_<<std::endl;
+	std::cout<<"frame_size : "<<audio_info.frame_size_<<std::endl;
+	std::cout<<"out_channels : "<<audio_info.out_channels_<<std::endl;
 
+	media_audio_info_ = audio_info;
+
+	audio_info_notify_event_->Signal();
 }
 
 int SDL2PlayerSubScreen::Init(int player_screen_width, int player_screen_height, SDL_Window *window, SDL_Renderer *renderer, int current_index)
@@ -150,35 +158,37 @@ int SDL2PlayerSubScreen::Play(const char *url)
 	if (errCode != 0)
 		return errCode;
 
-	//// 等待1秒钟
-	//base::TimeDelta time_delta = base::TimeDelta::FromMicroseconds(1000);
-	//base::WaitableEvent wait_event(false, false);
-	//wait_event.TimedWait(time_delta);
+	// 这里可以判断，是否含有视音频流
+	if (decoder_v3_->input_video_stream_index_ >= 0)
+	{
+		// 存在视频流, 做视频处理的一些初始化工作
+		frame_ = av_frame_alloc();
+		frame_yuv_ = av_frame_alloc();
+		out_buffer_ = (unsigned char *)av_malloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P,  player_screen_width_, player_screen_height_, 1));
+		av_image_fill_arrays(frame_yuv_->data, frame_yuv_->linesize, out_buffer_, AV_PIX_FMT_YUV420P, player_screen_width_, player_screen_height_, 1);
 
-	frame_ = av_frame_alloc();
-	frame_yuv_ = av_frame_alloc();
-	out_buffer_ = (unsigned char *)av_malloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P,  player_screen_width_, player_screen_height_, 1));
-	av_image_fill_arrays(frame_yuv_->data, frame_yuv_->linesize, out_buffer_, AV_PIX_FMT_YUV420P, player_screen_width_, player_screen_height_, 1);
 
+		// 在此之前要等第一波解码完成，否则会出问题
+		video_info_notify_event_->Wait();
+		img_convert_ctx_ = sws_getContext(media_video_info_.codec_width_, media_video_info_.codec_height_,
+			media_video_info_.pixel_format_, player_screen_width_, player_screen_height_, media_video_info_.pixel_format_,
+			SWS_BICUBIC, nullptr, nullptr, nullptr);
 
-	// 在此之前要等第一波解码完成，否则会出问题
-	video_info_notify_event_->Wait();
-	img_convert_ctx_ = sws_getContext(media_video_info_.codec_width_, media_video_info_.codec_height_,
-		media_video_info_.pixel_format_, player_screen_width_, player_screen_height_, media_video_info_.pixel_format_,
-		SWS_BICUBIC, nullptr, nullptr, nullptr);
+		// 这里启动线程，分别用于处理SDL的内部消息和我们用于控制播放的自定义消息
+		sdl_refresh_thread_->message_loop()->PostTask(FROM_HERE, base::Bind(&SDL2PlayerSubScreen::SubScreenRefreshTask, this));
 
-	// 这里启动线程，分别用于处理SDL的内部消息和我们用于控制播放的自定义消息
-	sdl_refresh_thread_->message_loop()->PostTask(FROM_HERE, base::Bind(&SDL2PlayerSubScreen::SubScreenRefreshTask, this));
+		base::TimeDelta time_delta = base::TimeDelta::FromMicroseconds(100);
+		base::WaitableEvent wait_event(false, false);
+		wait_event.TimedWait(time_delta);
 
-	base::TimeDelta time_delta = base::TimeDelta::FromMicroseconds(100);
-	base::WaitableEvent wait_event(false, false);
-	wait_event.TimedWait(time_delta);
+		sdl_control_thread_->message_loop()->PostTask(FROM_HERE, base::Bind(&SDL2PlayerSubScreen::SubScreenControlTask, this));
+		wait_event.TimedWait(time_delta);
+	}
 
-	sdl_control_thread_->message_loop()->PostTask(FROM_HERE, base::Bind(&SDL2PlayerSubScreen::SubScreenControlTask, this));
-	wait_event.TimedWait(time_delta);
-	
-	// 这里，将播放线程调整到主线程，这样就可以接受窗口消息，改变播放窗口的尺寸了
-	//MainWorkingTask(this);
+	if (decoder_v3_->input_audio_stream_index_ >= 0)
+	{
+		// 存在音频流，做音频处理的一些初始化工作
+	}
 
 	return errCode;
 }
