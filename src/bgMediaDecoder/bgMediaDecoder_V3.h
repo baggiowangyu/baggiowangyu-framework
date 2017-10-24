@@ -54,6 +54,14 @@ typedef struct _MediaVideoInfo_
 	int max_b_frames_;		// 
 	AVRational frame_rate_;		// 
 } MediaVideoInfo, *PMediaVideoInfo;
+
+typedef struct _MediaAudioInfo_
+{
+	// 采样率
+	// 码流
+	// 声道数
+} MediaAudioInfo, *PMediaAudioInfo;
+
 #endif
 
 class bgMediaDecoderV3Notify
@@ -63,7 +71,7 @@ public:
 	virtual void ErrorNotify(std::string errstr, int errcode) = 0;
 	virtual void DecodeNotify(AVFrame *frame_data, int frame_type) = 0;
 	virtual void VideoInfoNotify(MediaVideoInfo video_info) = 0;
-	virtual void AudioInfoNotify() = 0;
+	virtual void AudioInfoNotify(MediaAudioInfo audio_info) = 0;
 };
 
 class bgMediaDecoderV3

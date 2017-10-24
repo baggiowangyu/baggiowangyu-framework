@@ -2,12 +2,13 @@
 
 #include "base/bind.h"
 #include "base/location.h"
+#include "base/rand_util.h"
 
 #include "bgMediaDecoder_V3.h"
 
 bgMediaDecoderV3::bgMediaDecoderV3(bgMediaDecoderV3Notify *notifer)
 	: notifer_(notifer)
-	, decode_thread_(new base::Thread("bgMediaDecoderV3_decode_thread"))
+	, decode_thread_(new base::Thread(base::RandBytesAsString(8).c_str()))
 	, state_(StandBy)
 {
 

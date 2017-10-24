@@ -9,8 +9,8 @@
 
 #include <iostream>
 
-#define sub_screen_width	100
-#define sub_screen_height	100
+#define sub_screen_width	848
+#define sub_screen_height	640
 
 SDL2Player::SDL2Player()
 	: screen_width_(848)
@@ -76,7 +76,7 @@ void SDL2Player::VideoInfoNotify(MediaVideoInfo video_info)
 	media_video_info_ = video_info;
 }
 
-void SDL2Player::AudioInfoNotify()
+void SDL2Player::AudioInfoNotify(MediaAudioInfo audio_info)
 {
 
 }
@@ -91,7 +91,7 @@ int SDL2Player::Play(const char *url)
 		return errCode;
 
 	// 这里需要注意一下，在创建渲染的时候必须跟窗口大小相同，不然会悲剧
-	sdl_window_ = SDL_CreateWindow("123", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screen_width_, screen_height_, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+	sdl_window_ = SDL_CreateWindow("123", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screen_width_, screen_height_, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE|SDL_WINDOW_POPUP_MENU);
 	sdl_renderer_ = SDL_CreateRenderer(sdl_window_, -1, 0);
 	sdl_texture_ = SDL_CreateTexture(sdl_renderer_, SDL_PIXELFORMAT_IYUV, SDL_TEXTUREACCESS_STREAMING, screen_width_, screen_height_);
 
@@ -228,7 +228,7 @@ int SDL2Player::refresh_video(void *opaque)
 		// 这里应当按照帧率发送
 		// 我们在这里默认使用40ms等待，其实就是1000ms / 40ms = 25帧
 		// 即当前我们将帧率固定在25
-		SDL_Delay(delay_count);
+		SDL_Delay(40);
 	}
 
 	player->thread_exit_ = 0;

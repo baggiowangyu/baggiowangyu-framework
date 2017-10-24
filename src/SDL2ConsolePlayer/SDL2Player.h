@@ -29,7 +29,7 @@ public:
 	virtual void VideoInfoNotify(MediaVideoInfo video_info);
 
 	// 解码器音频信息通知
-	virtual void AudioInfoNotify();
+	virtual void AudioInfoNotify(MediaAudioInfo audio_info);
 
 public:
 	// 播放视音频

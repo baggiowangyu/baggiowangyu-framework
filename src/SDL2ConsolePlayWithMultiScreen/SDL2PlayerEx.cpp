@@ -96,7 +96,7 @@ void SDL2PlayerSubScreen::VideoInfoNotify(MediaVideoInfo video_info)
 	video_info_notify_event_->Signal();
 }
 
-void SDL2PlayerSubScreen::AudioInfoNotify()
+void SDL2PlayerSubScreen::AudioInfoNotify(MediaAudioInfo audio_info)
 {
 
 }
@@ -225,8 +225,6 @@ void SDL2PlayerSubScreen::SubScreenRefreshTask(SDL2PlayerSubScreen *sub_screen)
 	base::TimeDelta time_delta = base::TimeDelta::FromMicroseconds(100);
 	base::WaitableEvent wait_event(false, false);
 	wait_event.TimedWait(time_delta);
-	
-	// 这里启动
 
 	bool is_stopped = false;
 	while (true)
@@ -256,6 +254,9 @@ void SDL2PlayerSubScreen::SubScreenRefreshTask(SDL2PlayerSubScreen *sub_screen)
 				AVFrame *current_frame = frame_node->frame_;
 				node->RemoveFromList();
 
+				if (!current_frame)
+					break;
+
 				//AVFrame *current_frame = player->video_list_2_.front();
 				//player->video_list_2_.pop();
 
@@ -265,7 +266,8 @@ void SDL2PlayerSubScreen::SubScreenRefreshTask(SDL2PlayerSubScreen *sub_screen)
 
 				// SDL渲染纹理
 				SDL_UpdateTexture(sub_screen->sdl_texture_, nullptr, sub_screen->frame_yuv_->data[0], sub_screen->frame_yuv_->linesize[0]);
-				SDL_RenderClear(sub_screen->sdl_renderer_);
+				//SDL_RenderClear(sub_screen->sdl_renderer_);	// 这一句话会导致多屏渲染的时候相互干扰
+				
 				SDL_RenderCopy(sub_screen->sdl_renderer_, sub_screen->sdl_texture_, nullptr, &sub_screen->sub_screen_rect_);
 				SDL_RenderPresent(sub_screen->sdl_renderer_);
 				// 渲染结束
@@ -301,19 +303,19 @@ void SDL2PlayerSubScreen::SubScreenControlTask(SDL2PlayerSubScreen *sub_screen)
 	{
 		SDL_WaitEvent(&event);
 
-		switch (event.type)
-		{
-		case SDL_WINDOWEVENT:
-			{
-				SDL_GetWindowSize(sub_screen->sdl_window_, &sub_screen->player_screen_width_, &sub_screen->player_screen_height_);
-				break;
-			}
-		case SDL_QUIT:
-			{
-				sub_screen->thread_exit_ = 1;
-				break;
-			}
-		}
+		//switch (event.type)
+		//{
+		//case SDL_WINDOWEVENT:
+		//	{
+		//		SDL_GetWindowSize(sub_screen->sdl_window_, &sub_screen->player_screen_width_, &sub_screen->player_screen_height_);
+		//		break;
+		//	}
+		//case SDL_QUIT:
+		//	{
+		//		sub_screen->thread_exit_ = 1;
+		//		break;
+		//	}
+		//}
 	}
 }
 
@@ -444,14 +446,15 @@ int SDL2PlayerEx::Init(int width /* = 800 */, int height /* = 600 */, enum SUBSC
 			for (int x_index = 0; x_index < count; ++x_index)
 			{
 				// 根据自己的索引计算矩形区域，坐标计算出错
+				// 这里有一点要特别注意的，w和h分别是宽度和高度，不是D点的坐标.....我给自己挖了个坑
 				sub_screens_[sub_screen_index].sub_screen_rect_.x = x_index * unit_width;
 				sub_screens_[sub_screen_index].sub_screen_rect_.y = y_index * unit_height;
-				sub_screens_[sub_screen_index].sub_screen_rect_.w = (x_index + 1) * unit_width;
-				sub_screens_[sub_screen_index].sub_screen_rect_.h = (y_index + 1) * unit_height;
+				sub_screens_[sub_screen_index].sub_screen_rect_.w = unit_width;
+				sub_screens_[sub_screen_index].sub_screen_rect_.h = unit_height;
 
-				std::cout<<"sub_screen_"<<sub_screen_index<<" position : ("<<
-					sub_screens_[sub_screen_index].sub_screen_rect_.x<<", "<<sub_screens_[sub_screen_index].sub_screen_rect_.y<<", "<<
-					sub_screens_[sub_screen_index].sub_screen_rect_.w<<", "<<sub_screens_[sub_screen_index].sub_screen_rect_.h<<")"<<std::endl;
+				//std::cout<<"sub_screen_"<<sub_screen_index<<" position : ("<<
+				//	sub_screens_[sub_screen_index].sub_screen_rect_.x<<", "<<sub_screens_[sub_screen_index].sub_screen_rect_.y<<", "<<
+				//	sub_screens_[sub_screen_index].sub_screen_rect_.w<<", "<<sub_screens_[sub_screen_index].sub_screen_rect_.h<<")"<<std::endl;
 
 				sub_screens_[sub_screen_index].Init(screen_width_, screen_height_, sdl_window_, sdl_renderer_, sub_screen_index);
 				++sub_screen_index;

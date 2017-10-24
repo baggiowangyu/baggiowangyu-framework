@@ -76,7 +76,7 @@ public:
 	virtual void VideoInfoNotify(MediaVideoInfo video_info);
 
 	// 解码器音频信息通知
-	virtual void AudioInfoNotify();
+	virtual void AudioInfoNotify(MediaAudioInfo audio_info);
 
 public:
 	int Init(int player_screen_width, int player_screen_height, SDL_Window *window, SDL_Renderer *renderer, int current_index);
