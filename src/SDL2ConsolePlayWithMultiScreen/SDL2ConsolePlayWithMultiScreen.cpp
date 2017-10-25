@@ -39,17 +39,17 @@ int _tmain(int argc, _TCHAR* argv[])
 	SDL2PlayerEx player;
 	int errCode = player.Init(848, 480, SUB_SCREEN_TYPE);
 
-	//player.PlayOnSubScreen(url.c_str(), 1);
+	player.PlayOnSubScreen(url.c_str(), 1);
 
 	// 实测发现多屏播放时，闪屏特别厉害，并且播放时间也没有保障
 	// 0号索引其他位置都会出现渲染画面不全的情况
 
-	for (int index = 0; index < (int)SUB_SCREEN_TYPE; ++index)
-	{
-		char path[4096] = {0};
-		sprintf_s(path, 4096, "D:\\test\\%d.mp4", index);
-		errCode = player.PlayOnSubScreen(path);
-	}
+	//for (int index = 0; index < (int)SUB_SCREEN_TYPE; ++index)
+	//{
+	//	char path[4096] = {0};
+	//	sprintf_s(path, 4096, "D:\\test\\%d.mp4", index);
+	//	errCode = player.PlayOnSubScreen(path);
+	//}
 
 	message_loop.Run();
 

@@ -97,6 +97,17 @@ public:
 	//static void refresh_video(void *opaque);
 
 public:
+	// 设置视频帧队列长度
+	// 这里这样干的目的，其实是为了限制一下解码器解码速度，避免内存暴涨
+	int SetVideoFrameQueueLength(int len = 150);
+	int PushVideoFrame(AVFrame *frame);
+	AVFrame* PopVideoFrame();
+
+	int SetAudioFrameQueueLength(int len = 150);
+	int PushAudioFrame(AVFrame *frame);
+	AVFrame* PopAudioFrame();
+
+public:
 	MediaVideoInfo media_video_info_;
 	MediaAudioInfo media_audio_info_;
 
@@ -131,6 +142,15 @@ public:
 	// 帧链表
 	base::LinkedList<FrameNode> video_list_;	// 视频帧链表
 	base::LinkedList<FrameNode> audio_list_;	// 音频帧链表
+
+	int video_list_max_len_;
+	int audio_list_max_len_;
+
+	int video_list_current_len_;
+	int audio_list_current_len_;
+
+	base::Lock video_list_lock_;
+	base::Lock audio_list_lock_;
 
 public:
 	//base::Thread *main_working_thread_;

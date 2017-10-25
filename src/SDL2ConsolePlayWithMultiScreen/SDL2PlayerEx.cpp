@@ -30,6 +30,10 @@ SDL2PlayerSubScreen::SDL2PlayerSubScreen()
 	, out_buffer_(nullptr)
 	, img_convert_ctx_(nullptr)
 	, frame_rate_(25)
+	, video_list_max_len_(150)
+	, audio_list_max_len_(150)
+	, video_list_current_len_(0)
+	, audio_list_current_len_(0)
 	, decoder_v3_(new bgMediaDecoderV3(this))
 	, decoder_state_(StandBy)
 	, sub_screen_working_state_(SubScreen_Free)
@@ -63,8 +67,10 @@ void SDL2PlayerSubScreen::DecodeNotify(AVFrame *frame_data, int frame_type)
 	{
 	case AVMEDIA_TYPE_VIDEO:
 		{
-			FrameNode *node = new FrameNode(frame_data);
-			video_list_.Append(node);
+			int errCode = PushVideoFrame(frame_data);
+			if (errCode != 0)
+			{
+			}
 			break;
 		}
 	case AVMEDIA_TYPE_AUDIO:
@@ -247,25 +253,14 @@ void SDL2PlayerSubScreen::SubScreenRefreshTask(SDL2PlayerSubScreen *sub_screen)
 			{
 				sub_screen->sub_screen_working_state_ = SubScreen_Playing;
 
-				// 这里需要检查解码器的工作状态，就绪....准备解码....解码中....解码结束....
-				// 如果真队列为空，只要解码器状态不是就绪或者解码结束，那么我们就直接跳出，如果是，则标记为结束
-				if ((sub_screen->video_list_.head() == sub_screen->video_list_.end()) && (sub_screen->video_list_.tail() == sub_screen->video_list_.end()))
-				{
-					if ((sub_screen->decoder_state_ == StandBy) || (sub_screen->decoder_state_ == DecodeFinished) || (sub_screen->decoder_state_ == DecodeError))
-						sub_screen->thread_exit_ = 1;
-
-					break;
-				}
-
-				// 从视频帧链表中取出一帧，转换图像后渲染显示
-				base::LinkNode<FrameNode> *node = sub_screen->video_list_.head();
-				FrameNode *frame_node = node->value();
-
-				AVFrame *current_frame = frame_node->frame_;
-				node->RemoveFromList();
+				AVFrame *current_frame = sub_screen->PopVideoFrame();
 
 				if (!current_frame)
 					break;
+
+				AVStream *video_stream = sub_screen->decoder_v3_->input_format_context_->streams[sub_screen->decoder_v3_->input_video_stream_index_];
+				double current_play_time = current_frame->pts * av_q2d(video_stream->time_base);
+				std::cout<<"current pts : "<<current_play_time<<std::endl;
 
 				//AVFrame *current_frame = player->video_list_2_.front();
 				//player->video_list_2_.pop();
@@ -357,6 +352,64 @@ void SDL2PlayerSubScreen::SubScreenRefreshControlTask(SDL2PlayerSubScreen *sub_s
 	sub_screen->play_event_type_ = SubScreen_Break;
 	sub_screen->play_event_->Signal();
 }
+
+int SDL2PlayerSubScreen::SetVideoFrameQueueLength(int len /* = 150 */)
+{
+	video_list_max_len_ = len;
+	return 0;
+}
+
+int SDL2PlayerSubScreen::PushVideoFrame(AVFrame *frame)
+{
+	video_list_lock_.Acquire();
+
+	// 首先检查当前队列中的帧数
+	if (video_list_current_len_ == video_list_max_len_)
+		return -1;
+	
+	FrameNode *node = new FrameNode(frame);
+	video_list_.Append(node);
+	++video_list_current_len_;
+
+	video_list_lock_.Release();
+
+	return 0;
+}
+
+AVFrame* SDL2PlayerSubScreen::PopVideoFrame()
+{
+	video_list_lock_.Acquire();
+
+	// 这里需要检查解码器的工作状态，就绪....准备解码....解码中....解码结束....
+	// 如果真队列为空，只要解码器状态不是就绪或者解码结束，那么我们就直接跳出，如果是，则标记为结束
+	if ((video_list_.head() == video_list_.end()) && (video_list_.tail() == video_list_.end()))
+	{
+		if ((decoder_state_ == StandBy) || (decoder_state_ == DecodeFinished) || (decoder_state_ == DecodeError))
+			thread_exit_ = 1;
+
+		return nullptr;
+	}
+
+	// 从视频帧链表中取出一帧，转换图像后渲染显示
+	base::LinkNode<FrameNode> *node = video_list_.head();
+	FrameNode *frame_node = node->value();
+
+	AVFrame *current_frame = frame_node->frame_;
+	node->RemoveFromList();
+
+	video_list_lock_.Release();
+
+	return current_frame;
+}
+
+int SDL2PlayerSubScreen::SetAudioFrameQueueLength(int len /* = 150 */)
+{
+	audio_list_max_len_ = len;
+	return 0;
+}
+
+
+
 
 // -----------------------------------------------------------------------------------------
 
