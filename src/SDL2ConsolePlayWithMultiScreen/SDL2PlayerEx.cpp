@@ -252,6 +252,7 @@ int SDL2PlayerSubScreen::Play(const char *url)
 
 		// ¿ªÊ¼²¥·ÅÒôÆµ
 		SDL_PauseAudio(0);
+		sdl_audio_play_thread_->message_loop()->PostTask(FROM_HERE, )
 	}
 
 	return errCode;

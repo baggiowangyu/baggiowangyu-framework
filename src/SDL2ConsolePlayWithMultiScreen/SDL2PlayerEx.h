@@ -95,6 +95,7 @@ public:
 	static void SubScreenControlTask(SDL2PlayerSubScreen *sub_screen);
 	static void SubScreenRefreshControlTask(SDL2PlayerSubScreen *sub_screen);
 	//static void refresh_video(void *opaque);
+	static void SubScreenPlayAudioTask(SDL2PlayerSubScreen *sub_screen);
 
 public:
 	// 设置视频帧队列长度
@@ -135,11 +136,13 @@ public:
 	int thread_exit_;
 
 public:
-	//AVFrame *video_frame_;			// 原始视频帧
-	AVFrame *video_frame_yuv_;			// YUV视频帧
+	//AVFrame *video_frame_;					// 原始视频帧
+	AVFrame *video_frame_yuv_;					// YUV视频帧
 	unsigned char *video_out_buffer_;			// 视频图像缓冲区
-	SwsContext *video_img_convert_ctx_;		// 图像转换上下文
-	int video_frame_rate_;				// 视频帧率：帧/秒
+	SwsContext *video_img_convert_ctx_;			// 图像转换上下文
+	int video_frame_rate_;						// 视频帧率：帧/秒
+
+	base::Thread *sdl_audio_play_thread_;		// 分屏播放音频流线程
 
 public:
 	AVFrame *audio_frame_;
