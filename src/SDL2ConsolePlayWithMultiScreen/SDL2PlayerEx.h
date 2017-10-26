@@ -99,13 +99,16 @@ public:
 public:
 	// 设置视频帧队列长度
 	// 这里这样干的目的，其实是为了限制一下解码器解码速度，避免内存暴涨
-	int SetVideoFrameQueueLength(int len = 150);
+	int SetVideoFrameQueueLength(int len = 1500);
 	int PushVideoFrame(AVFrame *frame);
 	AVFrame* PopVideoFrame();
 
-	int SetAudioFrameQueueLength(int len = 150);
+	int SetAudioFrameQueueLength(int len = 1500);
 	int PushAudioFrame(AVFrame *frame);
 	AVFrame* PopAudioFrame();
+
+public:
+	static void AudioDataCallback(void *userdata, unsigned char *stream, int len);
 
 public:
 	MediaVideoInfo media_video_info_;
@@ -132,11 +135,15 @@ public:
 	int thread_exit_;
 
 public:
-	AVFrame *frame_;				// 原始视频帧
-	AVFrame *frame_yuv_;			// YUV视频帧
-	unsigned char *out_buffer_;		// 视频图像缓冲区
-	SwsContext *img_convert_ctx_;	// 图像转换上下文
-	int frame_rate_;				// 帧率：帧/秒
+	//AVFrame *video_frame_;			// 原始视频帧
+	AVFrame *video_frame_yuv_;			// YUV视频帧
+	unsigned char *video_out_buffer_;			// 视频图像缓冲区
+	SwsContext *video_img_convert_ctx_;		// 图像转换上下文
+	int video_frame_rate_;				// 视频帧率：帧/秒
+
+public:
+	AVFrame *audio_frame_;
+	unsigned char *audio_out_buffer_;
 
 public:
 	// 帧链表

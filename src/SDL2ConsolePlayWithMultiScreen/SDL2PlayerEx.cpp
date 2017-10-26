@@ -13,6 +13,8 @@
 #define REFRESH_EVENT	(SDL_USEREVENT + 1)
 #define BREAK_EVENT		(SDL_USEREVENT + 2)
 
+#define MAX_AUDIO_FRAME_SIZE 192000 // 1 second of 48khz 32bit audio	// 这里实际定义了码率
+
 SDL2PlayerSubScreen::SDL2PlayerSubScreen()
 	: player_screen_width_(800)
 	, player_screen_height_(600)
@@ -25,11 +27,12 @@ SDL2PlayerSubScreen::SDL2PlayerSubScreen()
 	, play_event_(new base::WaitableEvent(false, false))
 	, play_event_type_(SubScreen_Refresh)
 	, thread_exit_(0)
-	, frame_(nullptr)
-	, frame_yuv_(nullptr)
-	, out_buffer_(nullptr)
-	, img_convert_ctx_(nullptr)
-	, frame_rate_(25)
+	//, video_frame_(nullptr)
+	, video_frame_yuv_(nullptr)
+	, video_out_buffer_(nullptr)
+	, video_img_convert_ctx_(nullptr)
+	, video_frame_rate_(25)
+	, audio_frame_(nullptr)
 	, video_list_max_len_(150)
 	, audio_list_max_len_(150)
 	, video_list_current_len_(0)
@@ -63,20 +66,41 @@ void SDL2PlayerSubScreen::ErrorNotify(std::string errstr, int errcode)
 void SDL2PlayerSubScreen::DecodeNotify(AVFrame *frame_data, int frame_type)
 {
 	// 这里得到的是视音频解码帧
+	base::TimeDelta time_delta = base::TimeDelta::FromMicroseconds(40);
 	switch (frame_type)
 	{
 	case AVMEDIA_TYPE_VIDEO:
 		{
-			int errCode = PushVideoFrame(frame_data);
-			if (errCode != 0)
+			while (true)
 			{
+				int errCode = PushVideoFrame(frame_data);
+				if (errCode != 0)
+				{
+					// 等待一帧的时间
+					base::WaitableEvent wait_event(false, false);
+					wait_event.TimedWait(time_delta);
+					continue;
+				}
+				else
+					break;
 			}
+
 			break;
 		}
 	case AVMEDIA_TYPE_AUDIO:
 		{
-			FrameNode *node = new FrameNode(frame_data);
-			audio_list_.Append(node);
+			while (true)
+			{
+				int errCode = PushAudioFrame(frame_data);
+				if (errCode != 0)
+				{
+					base::WaitableEvent wait_event(false, false);
+					wait_event.TimedWait(time_delta);
+					continue;
+				}
+				else
+					break;
+			}
 			break;
 		}
 	default:
@@ -167,16 +191,18 @@ int SDL2PlayerSubScreen::Play(const char *url)
 	// 这里可以判断，是否含有视音频流
 	if (decoder_v3_->input_video_stream_index_ >= 0)
 	{
+		video_info_notify_event_->Wait();
+
 		// 存在视频流, 做视频处理的一些初始化工作
-		frame_ = av_frame_alloc();
-		frame_yuv_ = av_frame_alloc();
-		out_buffer_ = (unsigned char *)av_malloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P,  player_screen_width_, player_screen_height_, 1));
-		av_image_fill_arrays(frame_yuv_->data, frame_yuv_->linesize, out_buffer_, AV_PIX_FMT_YUV420P, player_screen_width_, player_screen_height_, 1);
+		//video_frame_ = av_frame_alloc();
+		video_frame_yuv_ = av_frame_alloc();
+		video_out_buffer_ = (unsigned char *)av_malloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P,  player_screen_width_, player_screen_height_, 1));
+		av_image_fill_arrays(video_frame_yuv_->data, video_frame_yuv_->linesize, video_out_buffer_, AV_PIX_FMT_YUV420P, player_screen_width_, player_screen_height_, 1);
 
 
 		// 在此之前要等第一波解码完成，否则会出问题
-		video_info_notify_event_->Wait();
-		img_convert_ctx_ = sws_getContext(media_video_info_.codec_width_, media_video_info_.codec_height_,
+		
+		video_img_convert_ctx_ = sws_getContext(media_video_info_.codec_width_, media_video_info_.codec_height_,
 			media_video_info_.pixel_format_, player_screen_width_, player_screen_height_, media_video_info_.pixel_format_,
 			SWS_BICUBIC, nullptr, nullptr, nullptr);
 
@@ -193,7 +219,39 @@ int SDL2PlayerSubScreen::Play(const char *url)
 
 	if (decoder_v3_->input_audio_stream_index_ >= 0)
 	{
+		audio_info_notify_event_->Wait();
+
 		// 存在音频流，做音频处理的一些初始化工作
+		audio_frame_ = av_frame_alloc();
+		//av_samples_get_buffer_size(NULL, AV_CH_LAYOUT_STEREO, media_audio_info_.frame_size_, AV_SAMPLE_FMT_S16, 1);
+		audio_out_buffer_ = (unsigned char *)av_malloc(MAX_AUDIO_FRAME_SIZE * 2);	// 根据码率计算存储空间
+
+		SDL_AudioSpec sdl_audio_spec;
+		sdl_audio_spec.freq = 44100;	// 采样率
+		sdl_audio_spec.format = AUDIO_S16SYS;
+		sdl_audio_spec.channels = media_audio_info_.channels_;
+		sdl_audio_spec.silence = 0;
+		sdl_audio_spec.samples = media_audio_info_.frame_size_;
+		sdl_audio_spec.callback = SDL2PlayerSubScreen::AudioDataCallback;
+		sdl_audio_spec.userdata = this;
+
+		errCode = SDL_OpenAudio(&sdl_audio_spec, nullptr);
+		if (errCode < 0)
+		{
+			// 出错了，停止播放
+			Stop();
+			return errCode;
+		}
+
+		int64_t input_channel_layout = av_get_default_channel_layout(decoder_v3_->input_audio_codec_context_->channels);
+
+		struct SwrContext *audio_convert_context_ = swr_alloc();
+		audio_convert_context_ = swr_alloc_set_opts(audio_convert_context_, AV_CH_LAYOUT_STEREO, AV_SAMPLE_FMT_S16, 44100, 
+			input_channel_layout, decoder_v3_->input_audio_codec_context_->sample_fmt, decoder_v3_->input_audio_codec_context_->sample_rate, 0, nullptr);
+		swr_init(audio_convert_context_);
+
+		// 开始播放音频
+		SDL_PauseAudio(0);
 	}
 
 	return errCode;
@@ -266,11 +324,11 @@ void SDL2PlayerSubScreen::SubScreenRefreshTask(SDL2PlayerSubScreen *sub_screen)
 				//player->video_list_2_.pop();
 
 				// 转换图像，图像转换结果总是最后两帧？
-				sws_scale(sub_screen->img_convert_ctx_, (const unsigned char * const*)current_frame->data, current_frame->linesize, 
-					0, current_frame->height, sub_screen->frame_yuv_->data, sub_screen->frame_yuv_->linesize);
+				sws_scale(sub_screen->video_img_convert_ctx_, (const unsigned char * const*)current_frame->data, current_frame->linesize, 
+					0, current_frame->height, sub_screen->video_frame_yuv_->data, sub_screen->video_frame_yuv_->linesize);
 
 				// SDL渲染纹理
-				SDL_UpdateTexture(sub_screen->sdl_texture_, nullptr, sub_screen->frame_yuv_->data[0], sub_screen->frame_yuv_->linesize[0]);
+				SDL_UpdateTexture(sub_screen->sdl_texture_, nullptr, sub_screen->video_frame_yuv_->data[0], sub_screen->video_frame_yuv_->linesize[0]);
 				//SDL_RenderClear(sub_screen->sdl_renderer_);	// 这一句话会导致多屏渲染的时候相互干扰
 				
 				SDL_RenderCopy(sub_screen->sdl_renderer_, sub_screen->sdl_texture_, nullptr, &sub_screen->sub_screen_rect_);
@@ -278,7 +336,7 @@ void SDL2PlayerSubScreen::SubScreenRefreshTask(SDL2PlayerSubScreen *sub_screen)
 				// 渲染结束
 
 				// 释放掉当前使用过的帧节点
-				delete frame_node;
+				av_frame_free(&current_frame);
 
 				break;
 			}
@@ -364,8 +422,11 @@ int SDL2PlayerSubScreen::PushVideoFrame(AVFrame *frame)
 	video_list_lock_.Acquire();
 
 	// 首先检查当前队列中的帧数
-	if (video_list_current_len_ == video_list_max_len_)
-		return -1;
+	//if (video_list_current_len_ == video_list_max_len_)
+	//{
+	//	video_list_lock_.Release();
+	//	return -1;
+	//}
 	
 	FrameNode *node = new FrameNode(frame);
 	video_list_.Append(node);
@@ -387,6 +448,7 @@ AVFrame* SDL2PlayerSubScreen::PopVideoFrame()
 		if ((decoder_state_ == StandBy) || (decoder_state_ == DecodeFinished) || (decoder_state_ == DecodeError))
 			thread_exit_ = 1;
 
+		video_list_lock_.Release();
 		return nullptr;
 	}
 
@@ -394,8 +456,11 @@ AVFrame* SDL2PlayerSubScreen::PopVideoFrame()
 	base::LinkNode<FrameNode> *node = video_list_.head();
 	FrameNode *frame_node = node->value();
 
-	AVFrame *current_frame = frame_node->frame_;
+	// 克隆帧，节点移除后释放掉
+	AVFrame *current_frame = av_frame_clone(frame_node->frame_);
+
 	node->RemoveFromList();
+	delete frame_node;
 
 	video_list_lock_.Release();
 
@@ -408,7 +473,55 @@ int SDL2PlayerSubScreen::SetAudioFrameQueueLength(int len /* = 150 */)
 	return 0;
 }
 
+int SDL2PlayerSubScreen::PushAudioFrame(AVFrame *frame)
+{
+	audio_list_lock_.Acquire();
 
+	// 首先检查当前队列中的帧数
+	//if (audio_list_current_len_ == audio_list_max_len_)
+	//{
+	//	audio_list_lock_.Release();
+	//	return -1;
+	//}
+
+	FrameNode *node = new FrameNode(frame);
+	audio_list_.Append(node);
+	++audio_list_current_len_;
+
+	audio_list_lock_.Release();
+
+	return 0;
+}
+
+AVFrame* SDL2PlayerSubScreen::PopAudioFrame()
+{
+	audio_list_lock_.Acquire();
+
+	// 这里需要检查解码器的工作状态，就绪....准备解码....解码中....解码结束....
+	// 如果真队列为空，只要解码器状态不是就绪或者解码结束，那么我们就直接跳出，如果是，则标记为结束
+	if ((audio_list_.head() == audio_list_.end()) && (audio_list_.tail() == audio_list_.end()))
+	{
+		if ((decoder_state_ == StandBy) || (decoder_state_ == DecodeFinished) || (decoder_state_ == DecodeError))
+			thread_exit_ = 1;
+
+		audio_list_lock_.Release();
+		return nullptr;
+	}
+
+	// 从视频帧链表中取出一帧，转换图像后渲染显示
+	base::LinkNode<FrameNode> *node = audio_list_.head();
+	FrameNode *frame_node = node->value();
+
+	// 克隆帧，节点移除后释放掉
+	AVFrame *current_frame = av_frame_clone(frame_node->frame_);
+		
+	node->RemoveFromList();
+	delete frame_node;
+
+	audio_list_lock_.Release();
+
+	return current_frame;
+}
 
 
 // -----------------------------------------------------------------------------------------
