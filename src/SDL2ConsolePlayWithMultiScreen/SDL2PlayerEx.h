@@ -143,11 +143,13 @@ public:
 	SwsContext *video_img_convert_ctx_;			// 图像转换上下文
 	int video_frame_rate_;						// 视频帧率：帧/秒
 
-	base::Thread *sdl_audio_play_thread_;		// 分屏播放音频流线程
-
 public:
+	struct SwrContext *audio_convert_context_;
+
 	AVFrame *audio_frame_;
 	unsigned char *audio_out_buffer_;
+	int audio_out_buffer_size_;
+	base::Thread *sdl_audio_play_thread_;		// 分屏播放音频流线程
 
 	// 音频缓冲区，几个标志点的定义
 	// |---------------|-------------|

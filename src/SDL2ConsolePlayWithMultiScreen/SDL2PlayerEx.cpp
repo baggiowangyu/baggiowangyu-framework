@@ -32,7 +32,9 @@ SDL2PlayerSubScreen::SDL2PlayerSubScreen()
 	, video_frame_yuv_(nullptr)
 	, video_out_buffer_(nullptr)
 	, video_img_convert_ctx_(nullptr)
+	, audio_convert_context_(nullptr)
 	, video_frame_rate_(25)
+	, sdl_audio_play_thread_(nullptr)
 	, audio_frame_(nullptr)
 	, audio_chunk_(nullptr)
 	, audio_len_(0)
@@ -173,6 +175,10 @@ int SDL2PlayerSubScreen::Init(int player_screen_width, int player_screen_height,
 	sdl_control_thread_ = new base::Thread(thread_name);
 	sdl_control_thread_->Start();
 
+	base::snprintf(thread_name, 4096, "sdl_audio_play_thread_%d", current_index_);
+	sdl_audio_play_thread_ = new base::Thread(thread_name);
+	sdl_audio_play_thread_->Start();
+
 	return errCode;
 }
 
@@ -226,14 +232,17 @@ int SDL2PlayerSubScreen::Play(const char *url)
 		audio_info_notify_event_->Wait();
 
 		// 存在音频流，做音频处理的一些初始化工作
+		int out_channels = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_STEREO);
+		int sample_rate = decoder_v3_->input_audio_codec_context_->sample_rate;
 		audio_frame_ = av_frame_alloc();
-		//av_samples_get_buffer_size(NULL, AV_CH_LAYOUT_STEREO, media_audio_info_.frame_size_, AV_SAMPLE_FMT_S16, 1);
+		audio_out_buffer_size_ = av_samples_get_buffer_size(NULL, out_channels, media_audio_info_.frame_size_, AV_SAMPLE_FMT_S16, 1);
 		audio_out_buffer_ = (unsigned char *)av_malloc(MAX_AUDIO_FRAME_SIZE * 2);	// 根据码率计算存储空间
 
 		SDL_AudioSpec sdl_audio_spec;
-		sdl_audio_spec.freq = 44100;	// 采样率
+		sdl_audio_spec.freq = sample_rate;	// 采样率
 		sdl_audio_spec.format = AUDIO_S16SYS;
-		sdl_audio_spec.channels = media_audio_info_.channels_;
+		//sdl_audio_spec.channels = media_audio_info_.channels_;
+		sdl_audio_spec.channels = out_channels;
 		sdl_audio_spec.silence = 0;
 		sdl_audio_spec.samples = media_audio_info_.frame_size_;
 		sdl_audio_spec.callback = SDL2PlayerSubScreen::AudioDataCallback;
@@ -249,8 +258,8 @@ int SDL2PlayerSubScreen::Play(const char *url)
 
 		int64_t input_channel_layout = av_get_default_channel_layout(decoder_v3_->input_audio_codec_context_->channels);
 
-		struct SwrContext *audio_convert_context_ = swr_alloc();
-		audio_convert_context_ = swr_alloc_set_opts(audio_convert_context_, AV_CH_LAYOUT_STEREO, AV_SAMPLE_FMT_S16, 44100, 
+		audio_convert_context_ = swr_alloc();
+		audio_convert_context_ = swr_alloc_set_opts(audio_convert_context_, AV_CH_LAYOUT_STEREO, AV_SAMPLE_FMT_S16, sample_rate, 
 			input_channel_layout, decoder_v3_->input_audio_codec_context_->sample_fmt, decoder_v3_->input_audio_codec_context_->sample_rate, 0, nullptr);
 		swr_init(audio_convert_context_);
 
@@ -422,14 +431,31 @@ void SDL2PlayerSubScreen::SubScreenRefreshControlTask(SDL2PlayerSubScreen *sub_s
 
 void SDL2PlayerSubScreen::SubScreenPlayAudioTask(SDL2PlayerSubScreen *sub_screen)
 {
+	base::TimeDelta wait_time = base::TimeDelta::FromMilliseconds(1);
+	base::WaitableEvent delay_event(false, false);
+
 	while (true)
 	{
-		AVFrame *audio_frame = sub_screen->PopAudioFrame();
+		AVFrame *current_frame = sub_screen->PopAudioFrame();
 
-		if (audio_frame == nullptr)
+		if (current_frame == nullptr)
 			break;
 
+		swr_convert(sub_screen->audio_convert_context_, &sub_screen->audio_out_buffer_, MAX_AUDIO_FRAME_SIZE, 
+			(const uint8_t **)current_frame->data, current_frame->nb_samples);
 
+		AVStream *audio_stream = sub_screen->decoder_v3_->input_format_context_->streams[sub_screen->decoder_v3_->input_audio_stream_index_];
+		double current_play_time = current_frame->pts * av_q2d(audio_stream->time_base);
+		std::cout<<"current audio pts : "<<current_play_time<<std::endl;
+
+		while (sub_screen->audio_len_ > 0)
+			//delay_event.TimedWait(wait_time);
+			SDL_Delay(1);
+
+		// 设置音频缓冲
+		sub_screen->audio_chunk_ = (unsigned char *)sub_screen->audio_out_buffer_;
+		sub_screen->audio_len_ = sub_screen->audio_out_buffer_size_;
+		sub_screen->audio_pos_ = sub_screen->audio_chunk_;
 	}
 }
 
@@ -478,6 +504,9 @@ AVFrame* SDL2PlayerSubScreen::PopVideoFrame()
 	base::LinkNode<FrameNode> *node = video_list_.head();
 	FrameNode *frame_node = node->value();
 
+	if (!frame_node->frame_)
+		return nullptr;
+
 	// 克隆帧，节点移除后释放掉
 	AVFrame *current_frame = av_frame_clone(frame_node->frame_);
 
@@ -524,7 +553,7 @@ AVFrame* SDL2PlayerSubScreen::PopAudioFrame()
 	if ((audio_list_.head() == audio_list_.end()) && (audio_list_.tail() == audio_list_.end()))
 	{
 		if ((decoder_state_ == StandBy) || (decoder_state_ == DecodeFinished) || (decoder_state_ == DecodeError))
-			thread_exit_ = 1;
+			audio_main_thread_exit_ = 1;
 
 		audio_list_lock_.Release();
 		return nullptr;
