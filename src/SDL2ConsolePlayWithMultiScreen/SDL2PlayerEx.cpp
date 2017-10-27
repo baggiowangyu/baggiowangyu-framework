@@ -26,13 +26,17 @@ SDL2PlayerSubScreen::SDL2PlayerSubScreen()
 	, sdl_control_thread_(nullptr)
 	, play_event_(new base::WaitableEvent(false, false))
 	, play_event_type_(SubScreen_Refresh)
-	, thread_exit_(0)
+	, video_main_thread_exit_(0)
+	, audio_main_thread_exit_(0)
 	//, video_frame_(nullptr)
 	, video_frame_yuv_(nullptr)
 	, video_out_buffer_(nullptr)
 	, video_img_convert_ctx_(nullptr)
 	, video_frame_rate_(25)
 	, audio_frame_(nullptr)
+	, audio_chunk_(nullptr)
+	, audio_len_(0)
+	, audio_pos_(nullptr)
 	, video_list_max_len_(150)
 	, audio_list_max_len_(150)
 	, video_list_current_len_(0)
@@ -252,7 +256,11 @@ int SDL2PlayerSubScreen::Play(const char *url)
 
 		// 开始播放音频
 		SDL_PauseAudio(0);
-		sdl_audio_play_thread_->message_loop()->PostTask(FROM_HERE, )
+		sdl_audio_play_thread_->message_loop()->PostTask(FROM_HERE, base::Bind(&SDL2PlayerSubScreen::SubScreenPlayAudioTask, this));
+
+		base::TimeDelta time_delta = base::TimeDelta::FromMicroseconds(100);
+		base::WaitableEvent wait_event(false, false);
+		wait_event.TimedWait(time_delta);
 	}
 
 	return errCode;
@@ -385,12 +393,12 @@ void SDL2PlayerSubScreen::SubScreenControlTask(SDL2PlayerSubScreen *sub_screen)
 
 void SDL2PlayerSubScreen::SubScreenRefreshControlTask(SDL2PlayerSubScreen *sub_screen)
 {
-	sub_screen->thread_exit_ = 0;
+	sub_screen->video_main_thread_exit_ = 0;
 
 	// 计算帧，帧率的计算方法跟time_base有关，这里一定要注意，不然会出大问题
 	int delay_count = 1000 / (sub_screen->media_video_info_.frame_rate_.num / sub_screen->media_video_info_.frame_rate_.den);
 
-	while (!sub_screen->thread_exit_)
+	while (!sub_screen->video_main_thread_exit_)
 	{
 		// 由于这里采用了同一个消息通道，不同的线程向各自的子窗口发送事件
 		sub_screen->play_event_type_ = SubScreen_Refresh;
@@ -406,10 +414,23 @@ void SDL2PlayerSubScreen::SubScreenRefreshControlTask(SDL2PlayerSubScreen *sub_s
 		//SDL_Delay(40);
 	}
 
-	sub_screen->thread_exit_ = 0;
+	sub_screen->video_main_thread_exit_ = 0;
 
 	sub_screen->play_event_type_ = SubScreen_Break;
 	sub_screen->play_event_->Signal();
+}
+
+void SDL2PlayerSubScreen::SubScreenPlayAudioTask(SDL2PlayerSubScreen *sub_screen)
+{
+	while (true)
+	{
+		AVFrame *audio_frame = sub_screen->PopAudioFrame();
+
+		if (audio_frame == nullptr)
+			break;
+
+
+	}
 }
 
 int SDL2PlayerSubScreen::SetVideoFrameQueueLength(int len /* = 150 */)
@@ -447,7 +468,7 @@ AVFrame* SDL2PlayerSubScreen::PopVideoFrame()
 	if ((video_list_.head() == video_list_.end()) && (video_list_.tail() == video_list_.end()))
 	{
 		if ((decoder_state_ == StandBy) || (decoder_state_ == DecodeFinished) || (decoder_state_ == DecodeError))
-			thread_exit_ = 1;
+			video_main_thread_exit_ = 1;
 
 		video_list_lock_.Release();
 		return nullptr;
@@ -522,6 +543,23 @@ AVFrame* SDL2PlayerSubScreen::PopAudioFrame()
 	audio_list_lock_.Release();
 
 	return current_frame;
+}
+
+void SDL2PlayerSubScreen::AudioDataCallback(void *userdata, unsigned char *stream, int len)
+{
+	SDL2PlayerSubScreen *sub_screen = (SDL2PlayerSubScreen*)userdata;
+
+	SDL_memset(stream, 0, len);
+	if (sub_screen->audio_len_ == 0)
+		return ;
+
+	int mix_len = (len > sub_screen->audio_len_ ? sub_screen->audio_len_ : len);
+
+	SDL_MixAudio(stream, sub_screen->audio_pos_, mix_len, SDL_MIX_MAXVOLUME);
+	sub_screen->audio_pos_ += mix_len;
+	sub_screen->audio_len_ -= mix_len;
+
+	return ;
 }
 
 

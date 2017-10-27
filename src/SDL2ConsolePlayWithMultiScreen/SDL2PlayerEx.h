@@ -133,7 +133,8 @@ public:
 	base::WaitableEvent *video_info_notify_event_;
 	base::WaitableEvent *audio_info_notify_event_;
 
-	int thread_exit_;
+	int video_main_thread_exit_;
+	int audio_main_thread_exit_;
 
 public:
 	//AVFrame *video_frame_;					// 原始视频帧
@@ -147,6 +148,13 @@ public:
 public:
 	AVFrame *audio_frame_;
 	unsigned char *audio_out_buffer_;
+
+	// 音频缓冲区，几个标志点的定义
+	// |---------------|-------------|
+	//chunk-_---------pos---len------|
+	unsigned char *audio_chunk_;
+	Uint32 audio_len_;
+	unsigned char *audio_pos_;
 
 public:
 	// 帧链表
