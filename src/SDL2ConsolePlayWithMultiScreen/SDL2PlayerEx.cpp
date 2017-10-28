@@ -204,7 +204,6 @@ int SDL2PlayerSubScreen::Play(const char *url)
 		video_info_notify_event_->Wait();
 
 		// 存在视频流, 做视频处理的一些初始化工作
-		//video_frame_ = av_frame_alloc();
 		video_frame_yuv_ = av_frame_alloc();
 		video_out_buffer_ = (unsigned char *)av_malloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P,  player_screen_width_, player_screen_height_, 1));
 		av_image_fill_arrays(video_frame_yuv_->data, video_frame_yuv_->linesize, video_out_buffer_, AV_PIX_FMT_YUV420P, player_screen_width_, player_screen_height_, 1);

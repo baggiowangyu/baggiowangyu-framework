@@ -92,18 +92,18 @@ int _tmain(int argc, _TCHAR* argv[])
 		// 在区域上画框
 		cv::rectangle(image_frame, faces[index], cv::Scalar(255, 0, 0), 2, 8, 0);
 
-		//// 以当前得到的人脸区域为范围，寻找人眼，并画框
-		//cv::Mat faceROI = image_frame_gray(faces[index]);
-		//std::vector<cv::Rect> eyes;
+		// 以当前得到的人脸区域为范围，寻找人眼，并画框
+		cv::Mat faceROI = image_frame_gray(faces[index]);
+		std::vector<cv::Rect> eyes;
 
-		//eyes_cascade.detectMultiScale(faceROI, eyes, 1.1, 1, CV_HAAR_DO_ROUGH_SEARCH, cv::Size(3, 3));
+		eyes_cascade.detectMultiScale(faceROI, eyes, 1.1, 1, CV_HAAR_DO_ROUGH_SEARCH, cv::Size(10, 10));
 
-		//for (size_t j = 0; j < eyes.size(); ++j)
-		//{
-		//	cv::Rect rect(faces[index].x + eyes[j].x, faces[index].y + eyes[j].y, eyes[j].width, eyes[j].height);
+		for (size_t j = 0; j < eyes.size(); ++j)
+		{
+			cv::Rect rect(faces[index].x + eyes[j].x, faces[index].y + eyes[j].y, eyes[j].width, eyes[j].height);
 
-		//	cv::rectangle(image_frame, rect, cv::Scalar(0, 255, 0), 2, 8, 0);
-		//}
+			cv::rectangle(image_frame, rect, cv::Scalar(0, 255, 0), 2, 8, 0);
+		}
 	}
 
 	// 显示图像，这里显示出问题了
