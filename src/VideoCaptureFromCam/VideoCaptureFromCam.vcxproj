@@ -56,8 +56,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\build\Debug\lib;../ext/OpenCV\lib\x86\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>base.lib;opencv_core330d.lib;opencv_face330d.lib;opencv_highgui330d.lib;opencv_imgcodecs330d.lib;opencv_imgproc330d.lib;opencv_objdetect330d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\build\Debug\lib;../ext/OpenCV\lib\x86\Debug;../ext/ffmpeg/lib/x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>base.lib;avcodec.lib;avdevice.lib;avfilter.lib;avformat.lib;avutil.lib;swscale.lib;swresample.lib;opencv_core330d.lib;opencv_face330d.lib;opencv_highgui330d.lib;opencv_imgcodecs330d.lib;opencv_imgproc330d.lib;opencv_objdetect330d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>COPY $(SolutionDir)ext\OpenCV\bin\x86\Debug\opencv_core330d.dll $(OutDir)
@@ -65,7 +65,8 @@ COPY $(SolutionDir)ext\OpenCV\bin\x86\Debug\opencv_face330d.dll $(OutDir)
 COPY $(SolutionDir)ext\OpenCV\bin\x86\Debug\opencv_highgui330d.dll $(OutDir)
 COPY $(SolutionDir)ext\OpenCV\bin\x86\Debug\opencv_imgcodecs330d.dll $(OutDir)
 COPY $(SolutionDir)ext\OpenCV\bin\x86\Debug\opencv_imgproc330d.dll $(OutDir)
-COPY $(SolutionDir)ext\OpenCV\bin\x86\Debug\opencv_objdetect330d.dll $(OutDir)</Command>
+COPY $(SolutionDir)ext\OpenCV\bin\x86\Debug\opencv_objdetect330d.dll $(OutDir)
+COPY $(SolutionDir)ext\OpenCV\bin\x86\Debug\opencv_videoio330d.dll $(OutDir)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
