@@ -9,55 +9,38 @@
 
 #include "base/threading/thread.h"
 #include "base/synchronization/waitable_event.h"
-#include "bgMediaDecoder/bgMediaDecoder_V3.h"
 
-class bgMediaDecoderV3;
-
-class bgFaceDetectionNotify
-{
-public:
-	virtual void ResultCallback(int face) = 0;
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "libavcodec/avcodec.h"
+#include "libswscale/swscale.h"
+#include "libavutil/avutil.h"
+#ifdef __cplusplus
 };
+#endif
+
+#include "opencv2/opencv.hpp"
+#include "opencv2/core.hpp"
+#include "opencv2/imgproc.hpp"
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/highgui.hpp"
+
 
 class bgFaceDetection : public bgMediaDecoderV3Notify
 {
 public:
-	bgFaceDetection(bgFaceDetectionNotify *notifer);
+	bgFaceDetection();
 	~bgFaceDetection();
 
 public:
-	int Init(const char *video_url, const char *face_factor_path, const char *eyes_factor_path);
+	int Init(const char *face_factor_path, const char *eyes_factor_path);
 	void Close();
 
 public:
-	int StartDetectTask();
-
-public:
-	static void FaceDetectTask(bgFaceDetection *face_detection);
-
-public:
-	virtual void StateNotify(std::string statestr, enum _Decoder_State_ stateindex);
-	virtual void ErrorNotify(std::string errstr, int errcode);
-	virtual void DecodeNotify(AVFrame *frame_data, int frame_type);
-	virtual void VideoInfoNotify(MediaVideoInfo video_info);
-	virtual void AudioInfoNotify(MediaAudioInfo audio_info);
-
-public:
-	std::string video_url_;
-	std::string face_detection_thread_name_;
-	base::Thread *face_detection_thread_;
-
-public:
-	MediaVideoInfo media_video_info_;
-	base::WaitableEvent *video_info_notify_event_;
-
-	AVFrame *video_frame_yuv_;					// YUV视频帧
-	unsigned char *video_out_buffer_;			// 视频图像缓冲区
-	SwsContext *video_img_convert_ctx_;			// 图像转换上下文
-
-public:
-	bgMediaDecoderV3 *decoder_;
-	bgFaceDetectionNotify *notifer_;
+	int InputPicture(const char *picture_path);
+	int InputPicture(AVFrame *frame);
+	int InputPicture(cv::Mat pic);
 
 public:
 	cv::CascadeClassifier face_cascade_;		// 人脸分类器
