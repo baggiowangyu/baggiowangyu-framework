@@ -26,8 +26,13 @@ extern "C" {
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/highgui.hpp"
 
+// 输出检测到的人脸
+typedef void (__stdcall * _FaceImageResult)(CvMat *sub_face);
 
-class bgFaceDetection : public bgMediaDecoderV3Notify
+// 输出框住人脸的图
+typedef void (__stdcall * _FaceDetectionResult)(cv::Mat face_result);
+
+class bgFaceDetection
 {
 public:
 	bgFaceDetection();
@@ -38,14 +43,23 @@ public:
 	void Close();
 
 public:
+	void InstallFaceImageResultCallback(_FaceImageResult func);
+	void InstallFaceDetectionResultCallback(_FaceDetectionResult func);
+
+public:
+	// 返回人脸个数，出错返回负值
 	int InputPicture(const char *picture_path);
-	int InputPicture(AVFrame *frame);
+	int InputPicture(AVFrame *frame, AVPixelFormat pix_fmt);
 	int InputPicture(cv::Mat pic);
 
 public:
 	cv::CascadeClassifier face_cascade_;		// 人脸分类器
 	cv::CascadeClassifier eyes_cascade_;		// 人眼分类器
 	cv::Mat image_frame_gray_;
+
+private:
+	_FaceImageResult ptr_FaceImageResult_;
+	_FaceDetectionResult ptr_FaceDetectionResult_;
 };
 
 #endif
